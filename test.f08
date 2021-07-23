@@ -3,16 +3,14 @@ program test
 
     implicit none
 
-    !Type declaration
-    real :: a, b, c
+    ! Type declaration 
+    real, dimension(4) :: a 
+    integer :: i 
 
-    a = 4.0
-    b = 4.0
+    do i = 1,4 
+        write(*, '(1x,i0)', advance="no"), i
+    end do 
 
-
-    c = a + b
-
-    print *, 'the total is', c
-
+    
 
 end program test
