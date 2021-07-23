@@ -13,9 +13,16 @@ program main
     implicit none
 
     ! Declare variables and parameters
-    integer, parameter :: N = 20, time_steps = 20, end_time = 8, num_of_simulations = 50
+    integer, parameter :: N = 20
+    integer, parameter :: time_steps = 1000 
+    integer, parameter :: end_time = 8 
+    integer, parameter :: num_of_simulations = 50 
+    real, parameter :: pi = 3.1415927
+    real, parameter :: phase = 0.0 
+    real, parameter :: gammaL = 0.5 
+    real, parameter :: gammaR = 0.5 
+    real :: Omega, dt, tau, total 
     integer :: sim, index, j, k
-    real, parameter :: pi = 3.1415927, phase = 0.0, gammaL = 0.5, gammaR = 0.5, Omega = 10 * pi, dt = end_time / time_steps, tau = 10 * dt * N
     real, dimension(time_steps) :: time_list, spin_up_list, spin_down_list, rand_list 
 
     ! The coefficients (g for ground, u for up)
@@ -23,8 +30,12 @@ program main
     complex, dimension(N) :: g_1, g_1_k1, g_1_k2, g_1_k3, g_1_k4, g_1_new, e_1 ,e_1_k1, e_1_k2, e_1_k3, e_1_k4, e_1_new 
     complex, dimension(N,N) :: g_2, g_2_k1, g_2_k2, g_2_k3, g_2_k4, g_2_new, e_2 ,e_2_k1, e_2_k2, e_2_k3, e_2_k4, e_2_new 
     complex :: lambdaL, lambdaR
-    real :: psi_0, psi_1, prob, rand_num, spin_up_prob, spin_down_prob, spin_total 
-    ! spin_total is just the total probability of spin up and down for normalisation purposes 
+    real :: psi_0, psi_1, prob, rand_num, spin_up_prob, spin_down_prob, spin_total ! spin_total is just the total probability of spin up and down for normalisation purposes 
+    
+    ! Some further variables that need to be calculated 
+    Omega = 10 * pi 
+    dt = end_time / time_steps 
+    tau = 10 * dt * N
 
     ! Construct time_list
     call linspace(start=0.0, end=end_time, time_list=time_list) ! This makes the time list 
@@ -78,7 +89,8 @@ program main
 
             ! Calculates k2 values
             g_0_k2 = (-Omega/2) * (e_0 + (dt * g_0_k1/2))
-            e_0_k2 = (lambdaL * (g_1(1) +　(dt * g_1_k1(1)/2))) + (lambdaR * (g_1(N) + (dt * g_1_k1(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k1/2)))
+            e_0_k2 = (lambdaL * (g_1(1) + (dt * g_1_k1(1)/2))) + & 
+            (lambdaR * (g_1(N) + (dt * g_1_k1(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k1/2)))
 
             g_1_k2(1) = (lambdaL * (e_0 + (dt * g_0_k1/2))) - (Omega/2)*(e_1(1) + (dt*e_1_k1(1)/2))
             g_1_k2(N) = (lambdaR * (e_0 + (dt * g_0_k1/2))) - (Omega/2)*(e_1(N) + (dt*e_1_k1(N)/2))
@@ -88,7 +100,8 @@ program main
 
             do j = 2, (N-1)
                 g_1_k2(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k1(j)/2))
-                e_1_k2(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k1(j,1) / 2))) + (lambdaR * (g_2(j,N) + (dt * g_2_k1(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k1(j)/2))
+                e_1_k2(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k1(j,1) / 2))) + &
+                (lambdaR * (g_2(j,N) + (dt * g_2_k1(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k1(j)/2))
             end do 
 
             do j = 2,N 
@@ -113,7 +126,8 @@ program main
 
             ! Calculates k3 values
             g_0_k3 = (-Omega/2) * (e_0 + (dt * g_0_k2/2))
-            e_0_k3 = (lambdaL * (g_1(1) +　(dt * g_1_k2(1)/2))) + (lambdaR * (g_1(N) + (dt * g_1_k2(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k2/2)))
+            e_0_k3 = (lambdaL * (g_1(1) + (dt * g_1_k2(1)/2))) + &
+            (lambdaR * (g_1(N) + (dt * g_1_k2(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k2/2)))
 
             g_1_k3(1) = (lambdaL * (e_0 + (dt * g_0_k2/2))) - (Omega/2)*(e_1(1) + (dt*e_1_k2(1)/2))
             g_1_k3(N) = (lambdaR * (e_0 + (dt * g_0_k2/2))) - (Omega/2)*(e_1(N) + (dt*e_1_k2(N)/2))
@@ -123,7 +137,8 @@ program main
 
             do j = 2, (N-1)
                 g_1_k3(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k2(j)/2))
-                e_1_k3(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1) / 2))) + (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)/2))
+                e_1_k3(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1) / 2))) + &
+                (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)/2))
             end do 
 
             do j = 2,N 
@@ -148,7 +163,8 @@ program main
 
             ! Calculates k4 values 
             g_0_k4 = (-Omega/2) * (e_0 + (dt * g_0_k2))
-            e_0_k4 = (lambdaL * (g_1(1) +　(dt * g_1_k2(1)))) + (lambdaR * (g_1(N) + (dt * g_1_k2(N)))) + ((Omega/2) * (g_0 + (dt * g_0_k2)))
+            e_0_k4 = (lambdaL * (g_1(1) + (dt * g_1_k2(1)))) + &
+            (lambdaR * (g_1(N) + (dt * g_1_k2(N)))) + ((Omega/2) * (g_0 + (dt * g_0_k2)))
 
             g_1_k4(1) = (lambdaL * (e_0 + (dt * g_0_k2))) - (Omega/2)*(e_1(1) + (dt*e_1_k2(1)))
             g_1_k4(N) = (lambdaR * (e_0 + (dt * g_0_k2))) - (Omega/2)*(e_1(N) + (dt*e_1_k2(N)))
@@ -158,7 +174,8 @@ program main
 
             do j = 2, (N-1)
                 g_1_k4(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k2(j)))
-                e_1_k4(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1)))) + (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N)))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)))
+                e_1_k4(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1)))) + &
+                (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N)))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)))
             end do 
 
             do j = 2,N 
@@ -211,7 +228,7 @@ program main
                 psi_0 = modulo_func(g_0_new)**2 + modulo_func(e_0_new)**2
 
                 do j = 1,(N-1) 
-                    psi_0 = psi_0 +　modulo_func(g_1_new(j))**2 + modulo_func(e_1_new(j))**2
+                    psi_0 = psi_0 + modulo_func(g_1_new(j))**2 + modulo_func(e_1_new(j))**2
                 end do 
 
                 do j = 1,(N-2)
@@ -257,13 +274,13 @@ program main
 
                     g_0 = g_0 / total 
                     e_0 = e_0 / total 
-
-                    g_1 = g_1 / total 
-                    e_1 = e_1 / total 
+ 
+                    g_1 = g_1 / total  
+                    e_1 = e_1 / total   
 
                     ! Calculate spin up and down probability here 
                     spin_down_prob = modulo_func(g_0)**2
-
+ 
                     do j = 1,N 
                         spin_down_prob = spin_down_prob + modulo_func(g_1(j))
                     end do 
@@ -280,8 +297,8 @@ program main
                     spin_down_prob = spin_down_prob / spin_total
 
                     ! Store the information in the local spin_up/down_list 
-                    spin_up_list[index] = spin_up_list[index] + spin_up_prob 
-                    spin_down_list[index] = spin_down_list[index] + spin_down_prob
+                    spin_up_list(index) = spin_up_list(index) + spin_up_prob 
+                    spin_down_list(index) = spin_down_list(index) + spin_down_prob
 
                 else
                     
@@ -359,8 +376,8 @@ program main
                     spin_down_prob = spin_down_prob / spin_total
 
                     ! Store the information in the local spin_up/down_list 
-                    spin_up_list[index] = spin_up_list[index] + spin_up_prob 
-                    spin_down_list[index] = spin_down_list[index] + spin_down_prob
+                    spin_up_list(index) = spin_up_list(index) + spin_up_prob 
+                    spin_down_list(index) = spin_down_list(index) + spin_down_prob
 
                 end if 
 
@@ -384,7 +401,7 @@ program main
 
                 do j = 1,N 
                     do k = 1,N 
-                        spin_down_prob = spin_down_prob + modulo_func(g_2(j))**2
+                        spin_down_prob = spin_down_prob + modulo_func(g_2(j,k))**2
                     end do
                 end do 
 
@@ -396,7 +413,7 @@ program main
 
                 do j = 1,N 
                     do k = 1,N 
-                        spin_up_prob = spin_up_prob + modulo_func(e_2(j))**2
+                        spin_up_prob = spin_up_prob + modulo_func(e_2(j,k))**2
                     end do
                 end do 
 
@@ -406,21 +423,32 @@ program main
                 spin_down_prob = spin_down_prob / spin_total 
 
                 ! Store the information in the local spin_up/down_list 
-                spin_up_list[index] = spin_up_list[index] + spin_up_prob 
-                spin_down_list[index] = spin_down_list[index] + spin_down_prob
+                spin_up_list(index) = spin_up_list(index) + spin_up_prob 
+                spin_down_list(index) = spin_down_list(index) + spin_down_prob
 
             end if 
 
         end do 
 
-        if mod(sim, 5) == 0 then 
+        if (mod(sim, 5) == 0) then 
             print *, sim ,' simulations completed.'
         end if         
 
     end do 
 
-    !!! Write out final result to a txt file 
+    ! Normalise spin up and down list by number of simulations 
+    spin_up_list = spin_up_list / num_of_simulations
+    spin_down_list = spin_down_list / num_of_simulations
+
+    !!! Write out final result to a txt file
+    open(1, file="spin_up.txt", status="new")
+    open(2, file="spin_down.txt", status="new")
+    do index = 1,size(time_list)
+        write(1,*) time_list(index), spin_up_list(index)
+        write(2,*) time_list(index), spin_down_list(index)
+    end do 
     
+    print *, "All simulations completed."
 
     ! -------------------------------------------------------------------------------------------
     ! 
