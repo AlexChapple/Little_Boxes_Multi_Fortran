@@ -4,16 +4,14 @@ program test
     implicit none
 
     ! Type declaration 
-    complex, dimension(2) :: a, b, c
+    real :: a 
 
-    a(1) = cmplx(1,0)
-    a(2) = cmplx(0,1)
+    a = 3.14159265359
 
-    b(1) = cmplx(1,0)
-    b(2) = cmplx(0,1)
+    print *, cexp(cmplx(0,a))
 
-    c = a + b 
 
-    print *, c    
+    
+
 
 end program test

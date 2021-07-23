@@ -14,16 +14,16 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 10000 
+    integer, parameter :: time_steps = 10000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 1 
+    integer, parameter :: num_of_simulations = 10000 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = 0.0 
     real, parameter :: gammaL = 0.5 
     real, parameter :: gammaR = 0.5 
     complex, parameter :: Omega = cmplx(10 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
-    real, parameter :: tau = 10 * dt * real(N) 
+    real, parameter :: tau = 10.0 * dt * real(N) 
     ! real :: dt, tau, total 
     real :: total 
     integer :: sim, index, j, k
@@ -38,25 +38,25 @@ program main
     
     ! Some further variables that need to be calculated 
 
-    g_0 = 1
-    e_0 = 0 
-    g_1 = 0 
-    e_1 = 0 
-    g_2 = 0 
-    e_2 = 0
-
     ! Construct time_list
     call linspace(start=0.0, end=end_time, time_list=time_list) ! This makes the time list 
-
-    ! Construct random number list 
-    call random_number(rand_list)
 
     ! A do loop will go through and do the simulations here
     do sim = 1, num_of_simulations
         ! Instead of a function called each time here, instead will do everything in this program itself
+        call initialise_arrays(N, g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 , & 
+                            e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new, g_1, g_1_k1, & 
+                            g_1_k2, g_1_k3, g_1_k4, g_1_new, e_1 ,e_1_k1, e_1_k2, & 
+                            e_1_k3, e_1_k4, e_1_new, g_2, g_2_k1, g_2_k2, g_2_k3, &
+                            g_2_k4, g_2_new, e_2 ,e_2_k1, e_2_k2, e_2_k3, e_2_k4, e_2_new)
+
+        ! Construct random number list 
+        call random_number(rand_list)
 
         lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
         lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
+
+        psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; spin_up_prob = 0; spin_down_prob = 0; spin_total = 0
   
         ! Change some variables into integer 
 
@@ -74,7 +74,7 @@ program main
 
             do j = 2, (N-1)
                 g_1_k1(j) = (-Omega/2) * e_1(j)
-                e_1_k1(j) = (lambdaL * g_2(j,1)) + (lambdaR * g_2(j,N)) + (Omega/2)*g_1(j)
+                e_1_k1(j) = (lambdaL * g_2(j,1)) + (lambdaR * g_2(j,N)) + ((Omega/2)*g_1(j))
             end do 
 
             do j = 2,N 
@@ -86,7 +86,7 @@ program main
             end do 
 
             do j = 1,(N-2)
-                do k = (j+1),N 
+                do k = (j+1),(N-1) 
                     g_2_k1(j,k) = (-Omega/2)*e_2(j,k)
                 end do 
             end do
@@ -206,7 +206,7 @@ program main
                 do k = (j+1), N 
                     e_2_k4(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k2(j,k)))
                 end do 
-            end do 
+            end do  
 
             ! Collect them all together
             g_0_new = g_0 + (dt/6)*(g_0_k1 + 2*g_0_k2 + 2*g_0_k3 + g_0_k4)
@@ -221,9 +221,9 @@ program main
             ! Normalise everything here
             total = return_total(N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
 
-            if (index <= 15) then 
-                print *, total, g_0, g_0_new , e_0, e_0_new
-            end if 
+            ! if (index <= 15) then 
+            !     print *, total, e_2_new 
+            ! end if 
 
             g_0_new = g_0_new / total 
             e_0_new = e_0_new / total 
@@ -340,17 +340,19 @@ program main
                     end do 
                 
                     ! Normalisation 
-                    total = modulo_func(g_0) + modulo_func(e_0)
+                    ! total = modulo_func(g_0) + modulo_func(e_0)
 
-                    do j = 2,N 
-                        total = total + modulo_func(g_1(j)) + modulo_func(e_1(j))
-                    end do 
+                    ! do j = 2,N 
+                    !     total = total + modulo_func(g_1(j)) + modulo_func(e_1(j))
+                    ! end do 
 
-                    do j = 2,(N-1)
-                        do k = (j+1),N 
-                            total = total + modulo_func(g_2(j,k)) + modulo_func(e_2(j,k))
-                        end do 
-                    end do 
+                    ! do j = 2,(N-1)
+                    !     do k = (j+1),N 
+                    !         total = total + modulo_func(g_2(j,k)) + modulo_func(e_2(j,k))
+                    !     end do 
+                    ! end do 
+
+                    total = return_total(N, g_0, e_0, g_1, e_1, g_2, e_2)
 
                     ! print *, g_0, e_0, g_1, e_1, g_2, e_2 
 
@@ -446,7 +448,7 @@ program main
 
         end do 
 
-        if (mod(sim, 5) == 0) then 
+        if (mod(sim, 100) == 0) then 
             print *, sim ,' simulations completed.'
         end if         
 
@@ -503,6 +505,8 @@ program main
         complex, dimension(N) :: g_1, e_1
         complex, dimension(N,N) :: g_2, e_2
 
+        ! print *, e_2
+
         total = modulo_func(g_0) + modulo_func(e_0)
 
         do j = 1,N
@@ -514,6 +518,8 @@ program main
                 total = total + modulo_func(g_2(j,k)) + modulo_func(e_2(j,k))
             end do 
         end do
+
+       
 
     end function 
 
@@ -533,6 +539,31 @@ program main
         c = sqrt(a**2 + b**2)
 
     end function 
+
+    subroutine initialise_arrays(N, g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 , & 
+                                e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new, g_1, g_1_k1, & 
+                                g_1_k2, g_1_k3, g_1_k4, g_1_new, e_1 ,e_1_k1, e_1_k2, & 
+                                e_1_k3, e_1_k4, e_1_new, g_2, g_2_k1, g_2_k2, g_2_k3, &
+                                g_2_k4, g_2_new, e_2 ,e_2_k1, e_2_k2, e_2_k3, e_2_k4, e_2_new)
+
+        ! Declare types 
+        integer :: N 
+        complex :: g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 ,e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new
+        complex, dimension(N) :: g_1, g_1_k1, g_1_k2, g_1_k3, g_1_k4, g_1_new, e_1 ,e_1_k1, e_1_k2, e_1_k3, e_1_k4, e_1_new 
+        complex, dimension(N,N) :: g_2, g_2_k1, g_2_k2, g_2_k3, g_2_k4, g_2_new, e_2 ,e_2_k1, e_2_k2, e_2_k3, e_2_k4, e_2_new 
+
+        g_0 = 1
+        g_0_k1 = 0; g_0_K2 = 0; g_0_K3 = 0; g_0_K4 = 0; g_0_new = 0
+        e_0 = 0; e_0_k1 = 0; e_0_K2 = 0; e_0_K3 = 0; e_0_K4 = 0; e_0_new = 0
+
+        g_1 = 0; g_1_k1 = 0; g_1_K2 = 0; g_1_K3 = 0; g_1_K4 = 0; g_1_new = 0
+        e_1 = 0; e_1_k1 = 0; e_1_K2 = 0; e_1_K3 = 0; e_1_K4 = 0; e_1_new = 0
+
+        g_2 = 0; g_2_k1 = 0; g_2_K2 = 0; g_2_K3 = 0; g_2_K4 = 0; g_2_new = 0
+        e_2 = 0; e_2_k1 = 0; e_2_K2 = 0; e_2_K3 = 0; e_2_K4 = 0; e_2_new = 0
+
+
+    end subroutine
 
 
 end program main 
