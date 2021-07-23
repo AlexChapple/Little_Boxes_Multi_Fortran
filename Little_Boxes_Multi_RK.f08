@@ -14,14 +14,18 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 1000 
-    integer, parameter :: end_time = 8 
-    integer, parameter :: num_of_simulations = 50 
+    integer, parameter :: time_steps = 10000 
+    integer, parameter :: end_time = 8
+    integer, parameter :: num_of_simulations = 1 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = 0.0 
     real, parameter :: gammaL = 0.5 
     real, parameter :: gammaR = 0.5 
-    real :: Omega, dt, tau, total 
+    complex, parameter :: Omega = cmplx(10 * pi, 0)
+    real, parameter :: dt = real(end_time) / real(time_steps) 
+    real, parameter :: tau = 10 * dt * real(N) 
+    ! real :: dt, tau, total 
+    real :: total 
     integer :: sim, index, j, k
     real, dimension(time_steps) :: time_list, spin_up_list, spin_down_list, rand_list 
 
@@ -33,9 +37,13 @@ program main
     real :: psi_0, psi_1, prob, rand_num, spin_up_prob, spin_down_prob, spin_total ! spin_total is just the total probability of spin up and down for normalisation purposes 
     
     ! Some further variables that need to be calculated 
-    Omega = 10 * pi 
-    dt = end_time / time_steps 
-    tau = 10 * dt * N
+
+    g_0 = 1
+    e_0 = 0 
+    g_1 = 0 
+    e_1 = 0 
+    g_2 = 0 
+    e_2 = 0
 
     ! Construct time_list
     call linspace(start=0.0, end=end_time, time_list=time_list) ! This makes the time list 
@@ -47,14 +55,16 @@ program main
     do sim = 1, num_of_simulations
         ! Instead of a function called each time here, instead will do everything in this program itself
 
-        lambdaL = cexp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
-        lambdaR = cexp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
+        lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
+        lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
+  
+        ! Change some variables into integer 
 
         do index = 1, size(time_list)
 
             ! Calculates k1 values 
             g_0_k1 = (-Omega/2) * e_0
-            e_0_k1 = (lambdaL * g_1(1)) + (lambdaR * g_1(N)) + ((Omega/2) * g_0)
+            e_0_k1 = (lambdaL * g_1(1)) + (lambdaR * g_1(N)) + ((Omega/2) * g_0) 
 
             g_1_k1(1) = (lambdaL * e_0) - (Omega/2)*e_1(1) 
             g_1_k1(N) = (lambdaR * e_0) - (Omega/2)*e_1(N) 
@@ -211,6 +221,10 @@ program main
             ! Normalise everything here
             total = return_total(N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
 
+            if (index <= 15) then 
+                print *, total, g_0, g_0_new , e_0, e_0_new
+            end if 
+
             g_0_new = g_0_new / total 
             e_0_new = e_0_new / total 
 
@@ -282,13 +296,13 @@ program main
                     spin_down_prob = modulo_func(g_0)**2
  
                     do j = 1,N 
-                        spin_down_prob = spin_down_prob + modulo_func(g_1(j))
+                        spin_down_prob = spin_down_prob + modulo_func(g_1(j))**2
                     end do 
 
                     spin_up_prob = modulo_func(e_0)**2 
 
                     do j = 1,N 
-                        spin_up_prob = spin_up_prob + modulo_func(e_1(j))
+                        spin_up_prob = spin_up_prob + modulo_func(e_1(j))**2
                     end do 
 
                     ! Normalisation 
@@ -337,6 +351,8 @@ program main
                             total = total + modulo_func(g_2(j,k)) + modulo_func(e_2(j,k))
                         end do 
                     end do 
+
+                    ! print *, g_0, e_0, g_1, e_1, g_2, e_2 
 
                     g_0 = g_0 / total 
                     e_0 = e_0 / total 
@@ -441,8 +457,8 @@ program main
     spin_down_list = spin_down_list / num_of_simulations
 
     !!! Write out final result to a txt file
-    open(1, file="spin_up.txt", status="new")
-    open(2, file="spin_down.txt", status="new")
+    open(1, file="spin_up.txt", status="replace")
+    open(2, file="spin_down.txt", status="replace")
     do index = 1,size(time_list)
         write(1,*) time_list(index), spin_up_list(index)
         write(2,*) time_list(index), spin_down_list(index)
@@ -514,7 +530,7 @@ program main
         a = real(z)
         b = aimag(z)
 
-        c = a**2 + b**2
+        c = sqrt(a**2 + b**2)
 
     end function 
 

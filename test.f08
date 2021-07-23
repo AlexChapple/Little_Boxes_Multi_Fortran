@@ -4,18 +4,16 @@ program test
     implicit none
 
     ! Type declaration 
-    real, dimension(4) :: a,b 
-    integer :: i 
+    complex, dimension(2) :: a, b, c
 
-    do i = 1,4 
-        a(i) = i 
-        b(i) = i ** 2
-    end do 
+    a(1) = cmplx(1,0)
+    a(2) = cmplx(0,1)
 
-    open(1, file="data.txt", status="new")
-    do i = 1,4
-        write(1,*) a(i), b(i)
-    end do 
+    b(1) = cmplx(1,0)
+    b(2) = cmplx(0,1)
 
+    c = a + b 
+
+    print *, c    
 
 end program test
