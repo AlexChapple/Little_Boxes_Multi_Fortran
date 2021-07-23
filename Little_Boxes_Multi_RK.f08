@@ -16,7 +16,7 @@ program main
     integer, parameter :: N = 20
     integer, parameter :: time_steps = 10000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 10000 
+    integer, parameter :: num_of_simulations = 100 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = 0.0 
     real, parameter :: gammaL = 0.5 
@@ -26,7 +26,7 @@ program main
     real, parameter :: tau = 10.0 * dt * real(N) 
     ! real :: dt, tau, total 
     real :: total 
-    integer :: sim, index, j, k
+    integer :: sim, index, j, k, beginning, end, rate 
     real, dimension(time_steps) :: time_list, spin_up_list, spin_down_list, rand_list 
 
     ! The coefficients (g for ground, u for up)
@@ -36,7 +36,8 @@ program main
     complex :: lambdaL, lambdaR
     real :: psi_0, psi_1, prob, rand_num, spin_up_prob, spin_down_prob, spin_total ! spin_total is just the total probability of spin up and down for normalisation purposes 
     
-    ! Some further variables that need to be calculated 
+    ! Program execution time 
+    call system_clock(beginning, rate)
 
     ! Construct time_list
     call linspace(start=0.0, end=end_time, time_list=time_list) ! This makes the time list 
@@ -466,7 +467,9 @@ program main
         write(2,*) time_list(index), spin_down_list(index)
     end do 
     
-    print *, "All simulations completed."
+    call system_clock(end)
+
+    print *, "All simulations completed. Execution time: ", real(end - beginning) / real(rate), " seconds."
 
     ! -------------------------------------------------------------------------------------------
     ! 

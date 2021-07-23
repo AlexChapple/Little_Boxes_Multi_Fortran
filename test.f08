@@ -4,14 +4,18 @@ program test
     implicit none
 
     ! Type declaration 
-    real :: a 
+    integer :: beginning, end, i
+    integer, dimension(10000) :: a 
 
-    a = 3.14159265359
+    call system_clock(beginning)
 
-    print *, cexp(cmplx(0,a))
+    do i = 1,10000
+        a(i) = exp(real(i))
+    end do 
 
+    call system_clock(end)
 
-    
+    print *, real(end - beginning)
 
 
 end program test
