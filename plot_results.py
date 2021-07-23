@@ -1,21 +1,36 @@
 import matplotlib.pyplot as plt 
 
+# Open data files 
+spin_up_data =  open("spin_down.txt", "r") 
+spin_down_data = open("spin_up.txt", "r")
 
+# Initialises arrays 
+time_list = []
+spin_up_prob_list = []
+spin_down_prob_list = []
 
-
-
-data =  open("data.txt", "r") 
-
-x = []
-y = []
-
-for line in data:
+# Extract data from data files
+for line in spin_up_data:
     p = line.split()
-    x.append(float(p[0]))
-    y.append(float(p[1]))
+    time_list.append(p[1])
+    spin_up_prob_list.append(p[2])
 
-data.close()
+for line in spin_down_data:
+    p = line.split()
+    spin_down_prob_list.append(p[2])
 
+spin_up_data.close()
+spin_down_data.close()
 
-plt.plot(x,y)
-plt.show()
+# Plotting function 
+plt.figure(1)
+plt.plot(time_list, spin_down_prob_list)
+plt.xlabel("Time (s)")
+plt.ylabel("Probability spin down")
+plt.savefig("Figures/spin_down.png", dpi=600)
+
+plt.figure(2)
+plt.plot(time_list, spin_up_prob_list)
+plt.xlabel("Time (s)")
+plt.ylabel("Probability spin up")
+plt.savefig("Figures/spin_up.png", dpi=600)
