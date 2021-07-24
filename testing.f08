@@ -300,8 +300,8 @@ program main
                     e_2 = e_2 / total 
 
                     ! Calculate spin up and down probability here 
-                    spin_down_prob = modulo_func(g_0)**2
-                    spin_up_prob = modulo_func(e_0)**2 
+                    spin_down_prob = modulo_func(g_0)
+                    spin_up_prob = modulo_func(e_0) 
  
                     do j = 1,N 
                         spin_down_prob = spin_down_prob + modulo_func(g_1(j))**2
@@ -310,8 +310,8 @@ program main
 
                     do j = 1,N ! NOTE: This can possibly be optimised slightly and reduce redundancy 
                         do k = 1,N 
-                            spin_down_prob = spin_down_prob + modulo_func(g_2(j,k))**2 
-                            spin_up_prob = spin_up_prob + modulo_func(e_2(j,k))**2 
+                            spin_down_prob = spin_down_prob + modulo_func(g_2(j,k))**2
+                            spin_up_prob = spin_up_prob + modulo_func(e_2(j,k))**2
                         end do 
                     end do
 
@@ -374,18 +374,18 @@ program main
                     e_2 = e_2 / total 
 
                     ! Calculate up and down probability here
-                    spin_down_prob = modulo_func(g_0)**2 
-                    spin_up_prob = modulo_func(e_0)**2 
+                    spin_down_prob = modulo_func(g_0) 
+                    spin_up_prob = modulo_func(e_0) 
 
                     do j = 1,N 
                         spin_down_prob = spin_down_prob + modulo_func(g_1(j))**2 
-                        spin_up_prob = spin_up_prob + modulo_func(e_1(j))**2 
+                        spin_up_prob = spin_up_prob + modulo_func(e_1(j))**2
                     end do 
 
                     do j = 1,N ! NOTE: This can possibly be optimised slightly and reduce redundancy 
                         do k = 1,N 
-                            spin_down_prob = spin_down_prob + modulo_func(g_2(j,k))**2 
-                            spin_up_prob = spin_up_prob + modulo_func(e_2(j,k))**2 
+                            spin_down_prob = spin_down_prob + modulo_func(g_2(j,k))**2
+                            spin_up_prob = spin_up_prob + modulo_func(e_2(j,k))**2
                         end do 
                     end do
 
@@ -412,8 +412,8 @@ program main
                 e_2 = e_2_new 
 
                 ! Find probability system is in spin up / down 
-                spin_down_prob = modulo_func(g_0)**2 
-                spin_up_prob = modulo_func(e_0)**2 
+                spin_down_prob = modulo_func(g_0) 
+                spin_up_prob = modulo_func(e_0) 
 
                 do j = 1,N 
                     spin_down_prob = spin_down_prob + modulo_func(g_1(j))**2
