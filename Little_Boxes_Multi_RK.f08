@@ -14,9 +14,9 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 5000
+    integer, parameter :: time_steps = 10000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 1000 
+    integer, parameter :: num_of_simulations = 10000 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = 0.0 
     real, parameter :: gammaL = 0.5 
@@ -267,8 +267,7 @@ program main
                         e_1(j) = e_2_new(j-1,N)
                     end do 
 
-                    g_2 = 0.0
-                    e_2 = 0.0
+                    g_2 = 0.0; e_2 = 0.0
 
                     ! Normalisation 
                     ! total = modulo_func(g_0) + modulo_func(e_0)
