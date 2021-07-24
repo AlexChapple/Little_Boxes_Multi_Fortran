@@ -44,6 +44,9 @@ program main
     ! Construct time_list
     call linspace(start=0.0, end=end_time, time_list=time_list) ! This makes the time list 
 
+    lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
+    lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
+
     ! A do loop will go through and do the simulations here
     do sim = 1, num_of_simulations
 
@@ -56,9 +59,6 @@ program main
 
         ! Construct random number list 
         call random_number(rand_list)
-
-        lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
-        lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
   
         ! Change some variables into integer 
 
@@ -127,7 +127,7 @@ program main
             end do 
 
             do j = 1,(N-2)
-                do k = (j+1),N 
+                do k = (j+1),(N-1) 
                     g_2_k2(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k1(j,k)/2))
                 end do 
             end do
@@ -164,7 +164,7 @@ program main
             end do 
 
             do j = 1,(N-2)
-                do k = (j+1),N 
+                do k = (j+1),(N-1) 
                     g_2_k3(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k2(j,k)/2))
                 end do 
             end do
@@ -201,7 +201,7 @@ program main
             end do 
 
             do j = 1,(N-2)
-                do k = (j+1),N 
+                do k = (j+1),(N-1) 
                     g_2_k4(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k2(j,k)))
                 end do 
             end do
@@ -317,7 +317,9 @@ program main
                         e_1(j) = e_1_new(j-1)
                     end do 
 
-                    do k = 1,N 
+                    g_2 = 0; e_2 = 0
+
+                    do k = 2,N 
                         g_2(1,k) = 0 
                         e_2(1,k) = 0 
                     end do  
