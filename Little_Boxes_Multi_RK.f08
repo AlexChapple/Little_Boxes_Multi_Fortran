@@ -14,7 +14,7 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 10000
+    integer, parameter :: time_steps = 20000
     integer, parameter :: end_time = 8
     integer, parameter :: num_of_simulations = 100 
     real, parameter :: pi = 3.1415927
@@ -24,7 +24,6 @@ program main
     complex, parameter :: Omega = cmplx(10 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
     real, parameter :: tau = 10.0 * dt * real(N) 
-    ! real :: dt, tau, total 
     real :: total 
     integer :: sim, index, j, k, beginning, end, rate 
     real, dimension(time_steps) :: time_list, spin_up_list, spin_down_list, rand_list 
@@ -281,11 +280,13 @@ program main
                     e_2 = 0.0
 
                     ! Normalisation 
-                    total = modulo_func(g_0) + modulo_func(e_0)
+                    ! total = modulo_func(g_0) + modulo_func(e_0)
                     
-                    do j = 1,N 
-                        total = total + modulo_func(g_1(j)) + modulo_func(e_1(j))
-                    end do 
+                    ! do j = 1,N 
+                    !     total = total + modulo_func(g_1(j)) + modulo_func(e_1(j))
+                    ! end do 
+
+                    total = return_total(N, g_0, e_0, g_1, e_1, g_2, e_2)
 
                     g_0 = g_0 / total 
                     e_0 = e_0 / total 
@@ -315,7 +316,7 @@ program main
                     spin_up_list(index) = spin_up_list(index) + spin_up_prob 
                     spin_down_list(index) = spin_down_list(index) + spin_down_prob
 
-                else
+                else ! Photon not found 
                     
                     g_0 = g_0_new
                     e_0 = e_0_new 
@@ -366,28 +367,19 @@ program main
 
                     ! Calculate up and down probability here
                     spin_down_prob = modulo_func(g_0)**2 
-
-                    do j = 2,N 
-                        spin_down_prob = spin_down_prob + modulo_func(g_1(j))**2 
-                    end do 
-
-                    do j = 1,N ! NOTE: This can possibly be optimised slightly and reduce redundancy 
-                        do k = 1,N 
-                            spin_down_prob = spin_down_prob + modulo_func(g_2(j,k))**2 
-                        end do 
-                    end do 
-
                     spin_up_prob = modulo_func(e_0)**2 
 
-                    do j = 2,N 
+                    do j = 1,N 
+                        spin_down_prob = spin_down_prob + modulo_func(g_1(j))**2 
                         spin_up_prob = spin_up_prob + modulo_func(e_1(j))**2 
                     end do 
 
                     do j = 1,N ! NOTE: This can possibly be optimised slightly and reduce redundancy 
                         do k = 1,N 
+                            spin_down_prob = spin_down_prob + modulo_func(g_2(j,k))**2 
                             spin_up_prob = spin_up_prob + modulo_func(e_2(j,k))**2 
                         end do 
-                    end do 
+                    end do
 
                     ! Normalisation 
                     spin_total = spin_up_prob + spin_down_prob
@@ -413,25 +405,16 @@ program main
 
                 ! Find probability system is in spin up / down 
                 spin_down_prob = modulo_func(g_0)**2 
-
-                do j = 1,N 
-                    spin_down_prob = spin_down_prob + modulo_func(g_1(j))**2
-                end do 
-
-                do j = 1,N 
-                    do k = 1,N 
-                        spin_down_prob = spin_down_prob + modulo_func(g_2(j,k))**2
-                    end do
-                end do 
-
                 spin_up_prob = modulo_func(e_0)**2 
 
                 do j = 1,N 
+                    spin_down_prob = spin_down_prob + modulo_func(g_1(j))**2
                     spin_up_prob = spin_up_prob + modulo_func(e_1(j))**2
                 end do 
 
                 do j = 1,N 
                     do k = 1,N 
+                        spin_down_prob = spin_down_prob + modulo_func(g_2(j,k))**2
                         spin_up_prob = spin_up_prob + modulo_func(e_2(j,k))**2
                     end do
                 end do 
@@ -502,7 +485,7 @@ program main
 
         implicit none
         
-        real :: total
+        real:: total
         integer :: N, j, k
         complex :: g_0, e_0
         complex, dimension(N) :: g_1, e_1
@@ -533,7 +516,7 @@ program main
         implicit none
 
         ! Declare var types
-        real :: a, b, c 
+        real :: a, b, c
         complex , intent(in) :: z
 
         a = real(z)
@@ -548,6 +531,8 @@ program main
                                 g_1_k2, g_1_k3, g_1_k4, g_1_new, e_1 ,e_1_k1, e_1_k2, & 
                                 e_1_k3, e_1_k4, e_1_new, g_2, g_2_k1, g_2_k2, g_2_k3, &
                                 g_2_k4, g_2_new, e_2 ,e_2_k1, e_2_k2, e_2_k3, e_2_k4, e_2_new)
+
+        ! This stores the initial condition of the simulations
 
         ! Declare types 
         integer :: N 
