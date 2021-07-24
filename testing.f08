@@ -60,7 +60,7 @@ program main
         lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
         lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
 
-        psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; spin_up_prob = 0; spin_down_prob = 0; spin_total = 0
+        psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; spin_up_prob = 0; spin_down_prob = 0; spin_total = 0; total = 0
   
         ! Change some variables into integer 
 

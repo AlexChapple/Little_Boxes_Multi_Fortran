@@ -14,9 +14,9 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 10000
+    integer, parameter :: time_steps = 5000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 500 
+    integer, parameter :: num_of_simulations = 1000 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = 0.0 
     real, parameter :: gammaL = 0.5 
@@ -59,12 +59,12 @@ program main
 
         lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
         lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
-
-        psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; spin_up_prob = 0; spin_down_prob = 0; spin_total = 0
   
         ! Change some variables into integer 
 
         do index = 1, size(time_list)
+
+            psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; spin_up_prob = 0; spin_down_prob = 0; spin_total = 0; total = 0
 
             ! Calculates k1 values 
             g_0_k1 = (-Omega/2) * e_0
@@ -91,7 +91,7 @@ program main
 
             do j = 1,(N-2)
                 do k = (j+1),(N-1) 
-                    g_2_k1(j,k) = (-Omega/2)*e_2(j,k)
+                    g_2_k1(j,k) = (-Omega/2) * e_2(j,k)
                 end do 
             end do
 
@@ -223,20 +223,7 @@ program main
             e_2_new = e_2 + (dt/6)*(e_2_k1 + 2*e_2_k2 + 2*e_2_k3 + e_2_k4)
 
             ! Normalise everything here
-            total = return_total(N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
-
-            ! if (index <= 15) then 
-            !     print *, total, e_2_new 
-            ! end if 
-
-            g_0_new = g_0_new / total 
-            e_0_new = e_0_new / total 
-
-            g_1_new = g_1_new / total 
-            e_1_new = e_1_new / total 
-
-            g_2_new = g_2_new / total 
-            e_2_new = e_2_new / total 
+            call normalise_new(total, N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
 
             ! Check photon 
 
@@ -261,7 +248,7 @@ program main
                     psi_1 = psi_1 + modulo_func(g_2_new(j,N))**2 + modulo_func(e_2_new(j,N))**2
                 end do 
 
-                prob = psi_1 / (psi_0 + psi_1)
+                prob = psi_1 / (psi_1 + psi_0)
                 
                 ! Grab a random number from a pre existing list of random numbers
                 rand_num = rand_list(index)
@@ -290,14 +277,7 @@ program main
                     !     total = total + modulo_func(g_1(j)) + modulo_func(e_1(j))
                     ! end do 
 
-                    total = return_total(N, g_0, e_0, g_1, e_1, g_2, e_2)
-
-                    g_0 = g_0 / total 
-                    e_0 = e_0 / total 
-                    g_1 = g_1 / total 
-                    e_1 = e_1 / total 
-                    g_2 = g_2 / total 
-                    e_2 = e_2 / total 
+                    call normalise(total, N, g_0, e_0, g_1, e_1, g_2, e_2)
 
                     ! Calculate spin up and down probability here 
                     spin_down_prob = modulo_func(g_0)**2
@@ -362,16 +342,7 @@ program main
                     !     end do 
                     ! end do 
 
-                    total = return_total(N, g_0, e_0, g_1, e_1, g_2, e_2)
-
-                    ! print *, g_0, e_0, g_1, e_1, g_2, e_2 
-
-                    g_0 = g_0 / total 
-                    e_0 = e_0 / total 
-                    g_1 = g_1 / total 
-                    e_1 = e_1 / total 
-                    g_2 = g_2 / total 
-                    e_2 = e_2 / total 
+                    call normalise(total, N, g_0, e_0, g_1, e_1, g_2, e_2)
 
                     ! Calculate up and down probability here
                     spin_down_prob = modulo_func(g_0)**2 
@@ -487,13 +458,37 @@ program main
 
     end subroutine
 
-    function return_total (N, g_0, e_0, g_1, e_1, g_2, e_2) result(total)
+    ! function return_total (N, g_0, e_0, g_1, e_1, g_2, e_2) result(total)
 
-        ! Takes in all the coefficient arrays and returns the total magnitude
+    !     ! Takes in all the coefficient arrays and returns the total magnitude
 
-        implicit none
+    !     implicit none
         
-        real:: total
+    !     real:: total
+    !     integer :: N, j, k
+    !     complex :: g_0, e_0
+    !     complex, dimension(N) :: g_1, e_1
+    !     complex, dimension(N,N) :: g_2, e_2
+
+    !     total = modulo_func(g_0) + modulo_func(e_0)
+
+    !     do j = 1,N
+    !         total = total + modulo_func(g_1(j)) + modulo_func(e_1(j))
+    !     end do 
+
+    !     do j = 1,N 
+    !         do k = 1,N
+    !             total = total + modulo_func(g_2(j,k)) + modulo_func(e_2(j,k))
+    !         end do 
+    !     end do
+
+    ! end function 
+
+    subroutine normalise (total, N, g_0, e_0, g_1, e_1, g_2, e_2)
+
+        implicit none 
+
+        real :: total 
         integer :: N, j, k
         complex :: g_0, e_0
         complex, dimension(N) :: g_1, e_1
@@ -511,7 +506,47 @@ program main
             end do 
         end do
 
-    end function 
+        g_0 = g_0 / total 
+        e_0 = e_0 / total 
+        g_1 = g_1 / total 
+        e_1 = e_1 / total 
+        g_2 = g_2 / total 
+        e_2 = e_2 / total 
+
+    end subroutine
+
+    subroutine normalise_new (total, N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
+
+        implicit none 
+
+        real :: total 
+        integer :: N, j, k
+        complex :: g_0_new, e_0_new
+        complex, dimension(N) :: g_1_new, e_1_new
+        complex, dimension(N,N) :: g_2_new, e_2_new
+
+        total = modulo_func(g_0_new) + modulo_func(e_0_new)
+
+        do j = 1,N
+            total = total + modulo_func(g_1_new(j)) + modulo_func(e_1_new(j))
+        end do 
+
+        do j = 1,N 
+            do k = 1,N
+                total = total + modulo_func(g_2_new(j,k)) + modulo_func(e_2_new(j,k))
+            end do 
+        end do
+
+        g_0_new = g_0_new / total 
+        e_0_new = e_0_new / total 
+
+        g_1_new = g_1_new / total 
+        e_1_new = e_1_new / total 
+
+        g_2_new = g_2_new / total 
+        e_2_new = e_2_new / total 
+
+    end subroutine
 
     function modulo_func(z) result(c)
 

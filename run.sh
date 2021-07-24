@@ -1,6 +1,6 @@
 #!/bin/sh
 
-gfortran-9 testing.f08 
+gfortran-9 Little_Boxes_Multi_RK.f08 
 ./a.out
 python3 plot_results.py
 
