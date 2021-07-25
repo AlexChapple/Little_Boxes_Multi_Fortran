@@ -10,15 +10,21 @@ program main
     ! Once difference is instead of plotting the function using julia, 
     ! we're going to write out the final result and use python to plot it
 
+    ! ----------------------------------------------------------------------------------
+    ! 
+    ! Main program that simulates the open quantum system. 
+    !
+    ! ----------------------------------------------------------------------------------
+
     implicit none
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
     integer, parameter :: time_steps = 80000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 1 
+    integer, parameter :: num_of_simulations = 2000 
     real, parameter :: pi = 3.1415927
-    real, parameter :: phase = 0.0 
+    real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
     real, parameter :: gammaR = 0.5 
     complex, parameter :: Omega = cmplx(10 * pi, 0)
@@ -35,22 +41,24 @@ program main
     complex :: lambdaL, lambdaR
     real :: psi_0, psi_1, prob, rand_num, spin_up_prob, spin_down_prob, spin_total ! spin_total is just the total probability of spin up and down for normalisation purposes 
     
+    ! Initialise spin up and down lists 
     spin_up_list = 0 
     spin_down_list = 0
 
-    ! Program execution time 
+    ! Program execution time tracking 
     call system_clock(beginning, rate)
 
     ! Construct time_list
     call linspace(start=0.0, end=end_time, time_list=time_list) ! This makes the time list 
 
+    ! Initialise lambdaL and lambdaR
     lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
     lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
 
     ! A do loop will go through and do the simulations here
     do sim = 1, num_of_simulations
 
-        ! Instead of a function called each time here, instead will do everything in this program itself
+        ! Initialise arrays
         call initialise_arrays(N, g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 , & 
                             e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new, g_1, g_1_k1, & 
                             g_1_k2, g_1_k3, g_1_k4, g_1_new, e_1 ,e_1_k1, e_1_k2, & 
@@ -59,8 +67,6 @@ program main
 
         ! Construct random number list 
         call random_number(rand_list)
-  
-        ! Change some variables into integer 
 
         do index = 1, size(time_list)
 
@@ -226,7 +232,6 @@ program main
             call normalise_new(total, N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
 
             ! Check photon 
-
             if (mod(index, 10) == 0) then ! Only checks for a photon every 10 time steps 
 
                 ! Do statistics here 
@@ -374,7 +379,6 @@ program main
 
             else ! It's not a multiple of 10 time step
                 ! In this case we just update it with Runge-Kutta 
-                ! Here I'm not renormalising it because I'm fairly certain it doesn't have to be 
 
                 g_0 = g_0_new 
                 e_0 = e_0_new
@@ -423,8 +427,8 @@ program main
     spin_down_list = spin_down_list / num_of_simulations
 
     !!! Write out final result to a txt file
-    open(1, file="spin_up.txt", status="replace")
-    open(2, file="spin_down.txt", status="replace")
+    open(1, file="spin_up_pi.txt", status="replace")
+    open(2, file="spin_down_pi.txt", status="replace")
     do index = 1,size(time_list)
         write(1,*) time_list(index), spin_up_list(index)
         write(2,*) time_list(index), spin_down_list(index)

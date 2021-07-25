@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np 
 
 # Open data files 
-spin_up_data =  np.loadtxt("spin_up.txt")
-spin_down_data = np.loadtxt("spin_down.txt")
+spin_up_data =  np.loadtxt("spin_up_pi.txt")
+spin_down_data = np.loadtxt("spin_down_pi.txt")
 
 # Initialises arrays 
 time_list = []
@@ -20,10 +20,10 @@ plt.figure(1)
 plt.plot(time_list, spin_down_prob_list)
 plt.xlabel("Time (s)")
 plt.ylabel("Probability spin down")
-plt.savefig("Figures/spin_down.png", dpi=600)
+plt.savefig("Figures/spin_down_pi.png", dpi=600)
 
 plt.figure(2)
 plt.plot(time_list, spin_up_prob_list)
 plt.xlabel("Time (s)")
 plt.ylabel("Probability spin up")
-plt.savefig("Figures/spin_up.png", dpi=600)
+plt.savefig("Figures/spin_up_pi.png", dpi=600)
