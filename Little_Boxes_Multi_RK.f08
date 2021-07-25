@@ -1,8 +1,5 @@
 ! Little Boxes Multi with 4th order Runge-Kutta method adapted into Fortran code
 !
-!
-!
-!
 
 program main
 
