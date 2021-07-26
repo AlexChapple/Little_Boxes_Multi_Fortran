@@ -17,9 +17,9 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 10001
+    integer, parameter :: time_steps = 10000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 9745 
+    integer, parameter :: num_of_simulations = 10000 
     integer, parameter :: bin_width = time_steps / 100 ! Creates 800 bins for waiting time distribution 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
