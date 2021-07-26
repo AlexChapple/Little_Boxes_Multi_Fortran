@@ -17,9 +17,9 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 80000
+    integer, parameter :: time_steps = 10001
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 2000 
+    integer, parameter :: num_of_simulations = 9745 
     integer, parameter :: bin_width = time_steps / 100 ! Creates 800 bins for waiting time distribution 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
@@ -28,7 +28,7 @@ program main
     complex, parameter :: Omega = cmplx(10 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
     real, parameter :: tau = 10.0 * dt * real(N) 
-    real :: total, last_time_found, waiting_total ! Last time the photon was found, total for normalisation purposes 
+    real :: total, last_time_found, waiting_total, current_time, time_since_last_photon ! Last time the photon was found, total for normalisation purposes 
     integer :: sim, index, j, k, beginning, end, rate
     real, dimension(time_steps) :: time_list, rand_list
     real, dimension(bin_width) :: waiting_time_list, reduced_time_list 
@@ -349,11 +349,11 @@ program main
     waiting_time_list = waiting_time_list / total 
     
     ! Make time array for waiting time list with correct length 
-    call linspace(start=0.0, end=end_time, reduced_time_list)
+    call linspace(start=0.0, end=end_time, time_list=reduced_time_list)
 
     !!! Write out final result to a txt file
     open(1, file="waiting_distribution.txt", status="new")
-    do index = 1,size(time_list)
+    do index = 1,size(reduced_time_list)
         write(1,*) reduced_time_list(index), waiting_time_list(index)
     end do 
     
@@ -523,6 +523,7 @@ program main
     subroutine calc_waiting_time (bin_width, time_steps, waiting_time_list, time_list, last_time_found, current_time)
 
         integer :: bin_width, i
+        integer :: time_steps 
         real :: last_time_found, current_time
         real, dimension(bin_width) :: waiting_time_list
         real, dimension(time_steps) :: time_list 
@@ -535,8 +536,8 @@ program main
 
             waiting_time_list(1) = waiting_time_list(1) + 1
 
-        else if (time_since_last_photon > waiting_time_list(size(waiting_time_list) - 1) .AND. , & 
-                    time_since_last_photon <= waiting_time_list(size(waiting_time_list))) then 
+        else if (time_since_last_photon > waiting_time_list(size(waiting_time_list) - 1) .AND. & 
+            time_since_last_photon <= waiting_time_list(size(waiting_time_list))) then 
 
             waiting_time_list(size(waiting_time_list)) = waiting_time_list(size(waiting_time_list)) + 1
 
@@ -545,18 +546,18 @@ program main
             ! Go into a do loop here 
             do i = 2, (size(waiting_time_list) - 2)
 
-                if (time_since_last_photon > waiting_time_list(i) .AND. , &
-                    time_since_last_photon <= waiting_time_list(i+1)) then 
+                if (((time_since_last_photon > waiting_time_list(i) .AND. & 
+                    time_since_last_photon <= waiting_time_list(i+1)))) then 
 
                     waiting_time_list(i) = waiting_time_list(i) + 1
 
                     exit 
 
-                end do 
+                end if 
 
             end do 
 
-        end do 
+        end if  
 
     end subroutine
 
