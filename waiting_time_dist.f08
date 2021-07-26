@@ -1,15 +1,13 @@
 ! Little Boxes Multi with 4th order Runge-Kutta method adapted into Fortran code
-!
+! This calculates the waiting time distribution. 
 
 program main
-
-    ! The equivalent of the average simulations method in the julia code
-    ! Once difference is instead of plotting the function using julia, 
-    ! we're going to write out the final result and use python to plot it
 
     ! ----------------------------------------------------------------------------------
     ! 
     ! Main program that simulates the open quantum system. 
+    ! Also calculates the photon waiting time distribution,  
+    ! and updates the waiting time list accordingly. 
     !
     ! ----------------------------------------------------------------------------------
 
@@ -19,8 +17,8 @@ program main
     integer, parameter :: N = 20
     integer, parameter :: time_steps = 10000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 10000 
-    integer, parameter :: bin_width = time_steps / 100 ! Creates 800 bins for waiting time distribution 
+    integer, parameter :: num_of_simulations = 100 
+    integer, parameter :: bin_width = time_steps ! Creates 800 bins for waiting time distribution 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
@@ -45,7 +43,7 @@ program main
 
     ! Construct time_list
     call linspace(start=0.0, end=end_time, time_list=time_list) ! This makes the time list 
-    call linspace(start=0.0, end=end_time, time_list=waiting_time_list)
+    call linspace(start=0.0, end=end_time, time_list=waiting_time_list) ! Creates the waiting time list 
 
     ! Initialise lambdaL and lambdaR
     lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
@@ -272,11 +270,8 @@ program main
 
                     call normalise(total, N, g_0, e_0, g_1, e_1, g_2, e_2)
 
-                    ! Photon counting stuff here 
-                    ! Takes in last waited time, and finds the waiting time, and puts it 
-                    ! into the appropriate bin 
-                    ! I'll call a subroutine here for this 
-
+                    ! Does all the photon waiting time distribution here 
+                    current_time = time_list(index)
                     call calc_waiting_time(bin_width, time_steps, waiting_time_list, time_list, last_time_found, current_time)
 
                 else ! Photon not found 
@@ -306,19 +301,7 @@ program main
                         end do 
                     end do 
                 
-                    ! Normalisation 
-                    ! total = modulo_func(g_0) + modulo_func(e_0)
-
-                    ! do j = 2,N 
-                    !     total = total + modulo_func(g_1(j)) + modulo_func(e_1(j))
-                    ! end do 
-
-                    ! do j = 2,(N-1)
-                    !     do k = (j+1),N 
-                    !         total = total + modulo_func(g_2(j,k)) + modulo_func(e_2(j,k))
-                    !     end do 
-                    ! end do 
-
+                    ! Call normalisation here 
                     call normalise(total, N, g_0, e_0, g_1, e_1, g_2, e_2)
 
                 end if 
@@ -351,12 +334,13 @@ program main
     ! Make time array for waiting time list with correct length 
     call linspace(start=0.0, end=end_time, time_list=reduced_time_list)
 
-    !!! Write out final result to a txt file
-    open(1, file="waiting_distribution.txt", status="new")
+    ! Write out final result to a txt file
+    open(1, file="waiting_distribution.txt", status="replace")
     do index = 1,size(reduced_time_list)
         write(1,*) reduced_time_list(index), waiting_time_list(index)
     end do 
     
+    ! Find end time of simulation 
     call system_clock(end)
 
     print *, "All simulations completed. Execution time: ", real(end - beginning) / real(rate), " seconds."
@@ -369,7 +353,9 @@ program main
     
     contains
 
-    subroutine linspace(start, end, time_list) 
+    subroutine linspace(start, end, time_list)
+
+        ! Linspace is created by  
 
         real, intent(in) :: start
         integer, intent(in) :: end 
@@ -558,6 +544,9 @@ program main
             end do 
 
         end if  
+
+        ! Updates the last found time 
+        last_time_found = current_time
 
     end subroutine
 
