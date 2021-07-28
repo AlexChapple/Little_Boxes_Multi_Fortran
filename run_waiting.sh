@@ -1,6 +1,6 @@
 #!/bin/sh
 
-gfortran  waiting_time_dist.f08 
+gfortran-9  waiting_time_dist.f08 
 ./a.out
 python3 plot_waiting_distribution.py
 

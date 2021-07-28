@@ -15,10 +15,10 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 10000
+    integer, parameter :: time_steps = 80000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 100 
-    integer, parameter :: bin_width = time_steps ! Creates 800 bins for waiting time distribution 
+    integer, parameter :: num_of_simulations = 1500 
+    integer, parameter :: bin_width = 10 * time_steps ! Creates 800 bins for waiting time distribution 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
@@ -329,7 +329,7 @@ program main
 
     ! Normalise the waiting distribution array 
     waiting_total = sum(waiting_time_list)
-    waiting_time_list = waiting_time_list / total 
+    waiting_time_list = waiting_time_list / waiting_total 
     
     ! Make time array for waiting time list with correct length 
     call linspace(start=0.0, end=end_time, time_list=reduced_time_list)
