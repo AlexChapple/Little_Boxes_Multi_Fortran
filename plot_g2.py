@@ -2,33 +2,19 @@ import matplotlib.pyplot as plt
 import numpy as np 
 
 
-waiting_data = np.loadtxt("g2.txt")
+photon_data = np.loadtxt("photon_counting.txt")
 
-time_list = []
-waiting_time_list = []
+photon_count = []
+photon_count_hist = []
 
-time_list = waiting_data[:,0]
-waiting_time_list = waiting_data[:,1]
+photon_count_data = photon_data[:,0]
 
-reduced_time_list = []
-reduced_waiting_time_list = []
-
-for i in range(len(waiting_time_list)):
-
-    if i <= 10:
-
-        reduced_time_list.append(time_list[i])
-        reduced_waiting_time_list.append(waiting_time_list[i])
-
-    elif i % 1000 == 0:
-
-        reduced_time_list.append(time_list[i])
-        reduced_waiting_time_list.append(waiting_time_list[i])
+x_list = [i for i in range(1,31)]
 
 
 
-plt.scatter(reduced_time_list, reduced_waiting_time_list, linewidth=0.5, marker=".")
-plt.xlabel("Time (s)")
-plt.ylabel("Waiting time")
-plt.title("waiting time distribution")
-plt.savefig("Figures/g2.png", dpi=600)
+plt.scatter(x_list, photon_count_data, linewidth=0.5, marker=".")
+plt.xlabel("Photon number")
+plt.ylabel("frequency (a.u)")
+plt.title("photon counting distribution")
+plt.savefig("Figures/photon_counting.png", dpi=600)
