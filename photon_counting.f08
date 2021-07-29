@@ -1,13 +1,12 @@
 ! Little Boxes Multi with 4th order Runge-Kutta method adapted into Fortran code
-! This calculates the waiting time distribution. 
+! This calculates the photon counting distribution 
 
 program main
 
     ! ----------------------------------------------------------------------------------
     ! 
     ! Main program that simulates the open quantum system. 
-    ! Also calculates the photon waiting time distribution,  
-    ! and updates the waiting time list accordingly. 
+    ! Does photon counting.  
     !
     ! ----------------------------------------------------------------------------------
 
@@ -18,7 +17,6 @@ program main
     integer, parameter :: time_steps = 80000
     integer, parameter :: end_time = 8
     integer, parameter :: num_of_simulations = 1500 
-    integer, parameter :: bin_width = 10 * time_steps ! Creates 800 bins for waiting time distribution 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
@@ -26,7 +24,7 @@ program main
     complex, parameter :: Omega = cmplx(10 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
     real, parameter :: tau = 10.0 * dt * real(N) 
-    real :: total, last_time_found, waiting_total, current_time, time_since_last_photon ! Last time the photon was found, total for normalisation purposes 
+    real :: total, current_time ! Last time the photon was found, total for normalisation purposes 
     integer :: sim, index, j, k, beginning, end, rate, photon_number_in_sim
     real, dimension(time_steps) :: time_list, rand_list
     real, dimension(30) :: photon_counter
@@ -43,7 +41,6 @@ program main
 
     ! Construct time_list
     call linspace(start=0.0, end=end_time, time_list=time_list) ! This makes the time list 
-    call linspace(start=0.0, end=end_time, time_list=waiting_time_list) ! Creates the waiting time list 
 
     ! Initialise lambdaL and lambdaR
     lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
@@ -339,9 +336,7 @@ program main
         end if         
 
     end do 
-    
-    ! Make time array for waiting time list with correct length 
-    call linspace(start=0.0, end=end_time, time_list=reduced_time_list)
+
 
     ! Write out final result to a txt file
     open(1, file="photon_counting.txt", status="replace")
@@ -380,32 +375,6 @@ program main
         end do
 
     end subroutine
-
-    ! function return_total (N, g_0, e_0, g_1, e_1, g_2, e_2) result(total)
-
-    !     ! Takes in all the coefficient arrays and returns the total magnitude
-
-    !     implicit none
-        
-    !     real:: total
-    !     integer :: N, j, k
-    !     complex :: g_0, e_0
-    !     complex, dimension(N) :: g_1, e_1
-    !     complex, dimension(N,N) :: g_2, e_2
-
-    !     total = modulo_func(g_0) + modulo_func(e_0)
-
-    !     do j = 1,N
-    !         total = total + modulo_func(g_1(j)) + modulo_func(e_1(j))
-    !     end do 
-
-    !     do j = 1,N 
-    !         do k = 1,N
-    !             total = total + modulo_func(g_2(j,k)) + modulo_func(e_2(j,k))
-    !         end do 
-    !     end do
-
-    ! end function 
 
     subroutine normalise (total, N, g_0, e_0, g_1, e_1, g_2, e_2)
 
