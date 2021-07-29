@@ -15,20 +15,28 @@ reduced_waiting_time_list = []
 
 for i in range(len(waiting_time_list)):
 
-    if i <= 10:
+    if i <= 1:
 
         reduced_time_list.append(time_list[i])
         reduced_waiting_time_list.append(waiting_time_list[i])
 
-    elif i % 1000 == 0:
+    elif i % 20000 == 0:
 
         reduced_time_list.append(time_list[i])
         reduced_waiting_time_list.append(waiting_time_list[i])
 
 
-
+plt.figure(1)
 plt.scatter(reduced_time_list, reduced_waiting_time_list, linewidth=0.5, marker=".")
-plt.xlabel("Time (s)")
-plt.ylabel("Waiting time")
+plt.xlabel("Waiting Time (s)")
+plt.ylabel("Waiting time distribution")
 plt.title("waiting time distribution")
-plt.savefig("Figures/waiting_distribution.png", dpi=600)
+plt.savefig("Figures/waiting_distribution_s.png", dpi=600)
+
+plt.figure(2)
+plt.plot(reduced_time_list, reduced_waiting_time_list, linewidth=1)
+plt.scatter(reduced_time_list, reduced_waiting_time_list, linewidth=1, marker="o", s=10, facecolors="none", edgecolors="red")
+plt.xlabel("Waiting Time (s)")
+plt.ylabel("Waiting time distribution")
+plt.title("waiting time distribution")
+plt.savefig("Figures/waiting_distribution_p.png", dpi=600)
