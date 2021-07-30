@@ -16,7 +16,7 @@ program main
     integer, parameter :: N = 20
     integer, parameter :: time_steps = 80000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 10 
+    integer, parameter :: num_of_simulations = 1500 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
@@ -25,9 +25,11 @@ program main
     real, parameter :: dt = real(end_time) / real(time_steps) 
     real, parameter :: tau = 10.0 * dt * real(N) 
     real :: total, current_time ! Last time the photon was found, total for normalisation purposes 
-    integer :: sim, index, j, k, beginning, end, rate, photon_number_in_sim
+    integer :: sim, index, j, k, beginning, end, rate
+    integer :: photon_number
     real, dimension(time_steps) :: time_list, rand_list
-    real, dimension(30) :: photon_counter
+    integer, parameter :: bin_width = 8
+    integer, dimension(bin_width) :: photon_counter
 
     ! The coefficients (g for ground, u for up)
     complex :: g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 ,e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new
@@ -42,14 +44,17 @@ program main
     ! Construct time_list
     call linspace(start=0.0, end=end_time, time_list=time_list) ! This makes the time list 
 
+    ! Initialise photon_counter
+    photon_counter = 0
+
     ! Initialise lambdaL and lambdaR
     lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
     lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
 
     ! A do loop will go through and do the simulations here
     do sim = 1, num_of_simulations
-
-        photon_number_in_sim = 0 ! Initialises the number of photon at start of simulation to be zero 
+    
+        photon_number = 0 ! Initialises the number of photon at start of simulation to be zero 
 
         ! Initialise arrays
         call initialise_arrays(N, g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 , & 
@@ -270,7 +275,7 @@ program main
                     call normalise(total, N, g_0, e_0, g_1, e_1, g_2, e_2)
 
                     ! Does photon counting stuff here 
-                    photon_number_in_sim = photon_number_in_sim + 1
+                    photon_number = photon_number + 1
                     
 
                 else ! Photon not found 
@@ -321,9 +326,9 @@ program main
         end do 
 
         ! Add number of photons found in simulation to photon_counter array 
-        if (photon_number_in_sim <= 30) then ! Makes sure it didn't go over 
+        if (photon_number <= bin_width) then ! Makes sure it didn't go over 
 
-            photon_counter(photon_number_in_sim) = photon_counter(photon_number_in_sim) + 1
+            photon_counter(photon_number+1) = photon_counter(photon_number+1) + 1
 
         else
 
@@ -331,7 +336,7 @@ program main
 
         end if 
 
-        if (mod(sim, 100) == 0) then 
+        if (mod(sim, 10) == 0) then 
             print *, sim ,' simulations completed.'
         end if         
 
@@ -340,7 +345,7 @@ program main
 
     ! Write out final result to a txt file
     open(1, file="photon_counting.txt", status="replace")
-    do index = 1,30
+    do index = 1,bin_width
         write(1,*) photon_counter(index)
     end do 
     
@@ -358,6 +363,8 @@ program main
     contains
 
     subroutine linspace(start, end, time_list)
+
+        implicit none
 
         ! Linspace is created by  
 

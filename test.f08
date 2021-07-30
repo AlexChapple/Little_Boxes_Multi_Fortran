@@ -4,18 +4,24 @@ program test
     implicit none
 
     ! Type declaration 
-    integer :: beginning, end, i
-    integer, dimension(10000) :: a 
+    integer :: i, j 
+    real :: a, b, c
 
-    call system_clock(beginning)
+    do i = 1,100
 
-    do i = 1,10000
-        a(i) = exp(real(i))
+        print *, "start:", a 
+
+        ! a = 0
+        
+        do j = 1, 100
+
+            b = real(1)
+            a = a + b 
+
+        end do 
+
+        print *, "end:" ,a
+
     end do 
-
-    call system_clock(end)
-
-    print *, real(end - beginning)
-
 
 end program test

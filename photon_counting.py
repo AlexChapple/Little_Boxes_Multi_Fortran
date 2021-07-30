@@ -9,7 +9,7 @@ photon_count_hist = []
 
 photon_count_data = photon_data
 
-x_list = [i for i in range(1,31)]
+x_list = [i for i in range(0,8)]
 
 
 
