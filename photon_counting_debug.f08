@@ -14,9 +14,9 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 80000
-    integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 1500 
+    integer, parameter :: time_steps = 1000000
+    integer, parameter :: end_time = 100
+    integer, parameter :: num_of_simulations = 10
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
@@ -30,6 +30,7 @@ program main
     real, dimension(time_steps) :: time_list, rand_list
     integer, parameter :: bin_width = 8
     integer, dimension(bin_width) :: photon_counter
+    real :: last_time 
 
     ! The coefficients (g for ground, u for up)
     complex :: g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 ,e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new
@@ -276,6 +277,7 @@ program main
 
                     ! Does photon counting stuff here 
                     photon_number = photon_number + 1
+                    print *, "photon detected at ", time_list(index) 
                     
 
                 else ! Photon not found 
@@ -330,15 +332,13 @@ program main
 
             photon_counter(photon_number+1) = photon_counter(photon_number+1) + 1
 
-            if (photon_number == 1) then 
-                print *, "One photon found, time is: ", time_list(index)
-            end if 
-
         else
 
             print *, "photon number exceeded array size"
 
         end if 
+
+        print *, "number of photons detected in this sim: ", photon_number
 
         if (mod(sim, 10) == 0) then 
             print *, sim ,' simulations completed.'

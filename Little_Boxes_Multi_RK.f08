@@ -19,7 +19,7 @@ program main
     integer, parameter :: N = 20
     integer, parameter :: time_steps = 80000
     integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 2000 
+    integer, parameter :: num_of_simulations = 100 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
