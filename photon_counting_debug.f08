@@ -14,23 +14,24 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 1000000
-    integer, parameter :: end_time = 100
-    integer, parameter :: num_of_simulations = 10
-    real, parameter :: pi = 3.1415927
+    integer, parameter :: time_steps = 1000000 ! NOTE: Evolving 100 RK between detections
+    integer, parameter :: end_time = 5
+    integer, parameter :: num_of_simulations = 10000
+    real, parameter :: pi = 3.14159265359
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
     real, parameter :: gammaR = 0.5 
-    complex, parameter :: Omega = cmplx(10 * pi, 0)
+    complex, parameter :: Omega = cmplx(50 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
-    real, parameter :: tau = 10.0 * dt * real(N) 
+    real, parameter :: tau = 200.0 * dt * real(N) 
     real :: total, current_time ! Last time the photon was found, total for normalisation purposes 
     integer :: sim, index, j, k, beginning, end, rate
     integer :: photon_number
     real, dimension(time_steps) :: time_list, rand_list
     integer, parameter :: bin_width = 8
     integer, dimension(bin_width) :: photon_counter
-    real :: last_time 
+    real :: last_time, interval 
+    integer :: within_interval 
 
     ! The coefficients (g for ground, u for up)
     complex :: g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 ,e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new
@@ -56,6 +57,9 @@ program main
     do sim = 1, num_of_simulations
     
         photon_number = 0 ! Initialises the number of photon at start of simulation to be zero 
+        within_interval = 0
+        last_time = 0
+        interval = 0 
 
         ! Initialise arrays
         call initialise_arrays(N, g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 , & 
@@ -231,7 +235,7 @@ program main
             call normalise_new(total, N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
 
             ! Check photon 
-            if (mod(index, 10) == 0) then ! Only checks for a photon every 10 time steps 
+            if (mod(index, 200) == 0) then ! Only checks for a photon every 10 time steps 
 
                 ! Do statistics here 
                 psi_0 = modulo_func(g_0_new)**2 + modulo_func(e_0_new)**2
@@ -277,8 +281,17 @@ program main
 
                     ! Does photon counting stuff here 
                     photon_number = photon_number + 1
-                    print *, "photon detected at ", time_list(index) 
+                    interval = time_list(index) - last_time 
+
+                    if (interval <= tau) then 
+                        within_interval = 1  
+                    end if  
+
+                    print *, "photon detected at ", time_list(index), "probability :", prob, "rand: ", & 
+                            rand_num, "within: ", within_interval
                     
+                    last_time = time_list(index)
+                    within_interval = 0
 
                 else ! Photon not found 
                     
