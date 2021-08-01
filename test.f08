@@ -3,25 +3,12 @@ program test
 
     implicit none
 
-    ! Type declaration 
-    integer :: i, j 
-    real :: a, b, c
+    real (kind = 4) :: a 
+    real (kind = 8) :: b 
 
-    do i = 1,100
+    a = 0.0000000001
+    b = 0.000000000000001
 
-        print *, "start:", a 
-
-        ! a = 0
-        
-        do j = 1, 100
-
-            b = real(1)
-            a = a + b 
-
-        end do 
-
-        print *, "end:" ,a
-
-    end do 
+    print *, a, b
 
 end program test
