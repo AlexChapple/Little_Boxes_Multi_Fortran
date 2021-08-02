@@ -1,13 +1,12 @@
 ! Little Boxes Multi with 4th order Runge-Kutta method adapted into Fortran code
-! This only lets one photon be in the chamber at a time 
-! In the hopes that it will never let a photon out 
+! This calculates the photon counting distribution 
 
 program main
 
     ! ----------------------------------------------------------------------------------
     ! 
     ! Main program that simulates the open quantum system. 
-    ! Only lets one photon be in the chamber at a time  
+    ! Does photon counting.  
     !
     ! ----------------------------------------------------------------------------------
 
@@ -17,29 +16,29 @@ program main
     integer, parameter :: N = 20
     integer, parameter :: time_steps = 100000 ! NOTE: Evolving 100 RK between detections
     integer, parameter :: end_time = 10
-    integer, parameter :: num_of_simulations = 10000
-    real (kind=8), parameter :: pi = 3.14159265359
-    real (kind=8), parameter :: phase = pi  
+    integer, parameter :: num_of_simulations = 50
+    real, parameter :: pi = 3.14159265359
+    real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
     real, parameter :: gammaR = 0.5 
-    complex (kind=8), parameter :: Omega = cmplx(10 * pi, 0)
-    real (kind=8), parameter :: dt = real(end_time) / real(time_steps) 
-    real (kind=8), parameter :: tau = 10.0 * dt * real(N) 
-    real (kind=8) :: total, current_time ! Last time the photon was found, total for normalisation purposes 
+    complex, parameter :: Omega = 10 * pi !cmplx(10 * pi, 0)
+    real, parameter :: dt = real(end_time) / real(time_steps) 
+    real, parameter :: tau = 100.0 * dt * real(N) 
+    real :: total, current_time ! Last time the photon was found, total for normalisation purposes 
     integer :: sim, index, j, k, beginning, end, rate
     integer :: photon_number
     real, dimension(time_steps) :: time_list, rand_list
-    integer, parameter :: bin_width = 8
+    integer, parameter :: bin_width = 14
     integer, dimension(bin_width) :: photon_counter
-    real (kind=8) :: last_time, interval , p0, p1, p2, p3, p4
+    real :: last_time, interval , p0, p1, p2, p3, p4
     integer :: within_interval 
 
     ! The coefficients (g for ground, u for up)
-    complex (kind=8):: g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 ,e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new
-    complex (kind=8), dimension(N) :: g_1, g_1_k1, g_1_k2, g_1_k3, g_1_k4, g_1_new, e_1 ,e_1_k1, e_1_k2, e_1_k3, e_1_k4, e_1_new 
-    complex (kind=8), dimension(N,N) :: g_2, g_2_k1, g_2_k2, g_2_k3, g_2_k4, g_2_new, e_2 ,e_2_k1, e_2_k2, e_2_k3, e_2_k4, e_2_new 
-    complex (kind=8) :: lambdaL, lambdaR
-    real (kind=8):: psi_0, psi_1, prob, rand_num, spin_up_prob, spin_down_prob, spin_total
+    complex :: g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 ,e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new
+    complex , dimension(N) :: g_1, g_1_k1, g_1_k2, g_1_k3, g_1_k4, g_1_new, e_1 ,e_1_k1, e_1_k2, e_1_k3, e_1_k4, e_1_new 
+    complex , dimension(N,N) :: g_2, g_2_k1, g_2_k2, g_2_k3, g_2_k4, g_2_new, e_2 ,e_2_k1, e_2_k2, e_2_k3, e_2_k4, e_2_new 
+    complex  :: lambdaL, lambdaR
+    real :: psi_0, psi_1, prob, rand_num 
     
     ! Program execution time tracking 
     call system_clock(beginning, rate)
@@ -51,8 +50,10 @@ program main
     photon_counter = 0
 
     ! Initialise lambdaL and lambdaR
-    lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
-    lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
+    lambdaL = cmplx(0,1) * sqrt(gammaL) * sqrt(N/tau)
+    lambdaR = cmplx(0,-1) * sqrt(gammaR) * sqrt(N/tau)
+
+    print *, lambdaL, lambdaR 
 
     ! A do loop will go through and do the simulations here
     do sim = 1, num_of_simulations
@@ -61,7 +62,8 @@ program main
         within_interval = 0
         last_time = 0
         interval = 0 
-        p0 = 0; p1 = 0; p2 = 0; p3 = 0; p4 = 0; g_2 = 0; e_2 = 0
+        p0 = 0; p1 = 0; p2 = 0; p3 = 0; p4 = 0
+        psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; total = 0
 
         ! Initialise arrays
         call initialise_arrays(N, g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 , & 
@@ -75,7 +77,7 @@ program main
 
         do index = 1, size(time_list)
 
-            psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; total = 0; g_2 = 0; e_2 = 0
+            psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; total = 0
 
             ! Calculates k1 values 
             g_0_k1 = (-Omega/2) * e_0
@@ -112,132 +114,21 @@ program main
                 end do 
             end do 
 
-            ! ! Calculates k2 values
-            ! g_0_k2 = (-Omega/2) * (e_0 + (dt * g_0_k1/2))
-            ! e_0_k2 = (lambdaL * (g_1(1) + (dt * g_1_k1(1)/2))) + & 
-            ! (lambdaR * (g_1(N) + (dt * g_1_k1(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k1/2)))
-
-            ! g_1_k2(1) = (lambdaL * (e_0 + (dt * g_0_k1/2))) - (Omega/2)*(e_1(1) + (dt*e_1_k1(1)/2))
-            ! g_1_k2(N) = (lambdaR * (e_0 + (dt * g_0_k1/2))) - (Omega/2)*(e_1(N) + (dt*e_1_k1(N)/2))
-
-            ! e_1_k2(1) = (lambdaR * (g_2(1,1) + (dt * g_2_k1(1,1)/2))) + (Omega/2)*(g_1(1) + (dt * g_1_k1(1)/2))
-            ! e_1_k2(N) = (lambdaL * (g_2(1,N) + (dt * g_2_k1(1,N)/2))) + (Omega/2)*(g_1(N) + (dt * g_1_k1(N)/2))
-
-            ! do j = 2, (N-1)
-            !     g_1_k2(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k1(j)/2))
-            !     e_1_k2(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k1(j,1) / 2))) + &
-            !     (lambdaR * (g_2(j,N) + (dt * g_2_k1(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k1(j)/2))
-            ! end do 
-
-            ! do j = 2,N 
-            !     g_2_k2(j,1) = (lambdaL * (e_1(j) + (dt * e_1_k1(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k1(j,1)/2))
-            ! end do 
-
-            ! do j = 1,(N-1)
-            !     g_2_k2(j,N) = (lambdaR * (e_1(j) + (dt * e_1_k1(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k1(j,1)/2))
-            ! end do 
-
-            ! do j = 1,(N-2)
-            !     do k = (j+1),(N-1) 
-            !         g_2_k2(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k1(j,k)/2))
-            !     end do 
-            ! end do
-
-            ! do j = 1,(N-1)
-            !     do k = (j+1), N 
-            !         e_2_k2(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k1(j,k)/2))
-            !     end do 
-            ! end do 
-
-            ! ! Calculates k3 values
-            ! g_0_k3 = (-Omega/2) * (e_0 + (dt * g_0_k2/2))
-            ! e_0_k3 = (lambdaL * (g_1(1) + (dt * g_1_k2(1)/2))) + &
-            ! (lambdaR * (g_1(N) + (dt * g_1_k2(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k2/2)))
-
-            ! g_1_k3(1) = (lambdaL * (e_0 + (dt * g_0_k2/2))) - (Omega/2)*(e_1(1) + (dt*e_1_k2(1)/2))
-            ! g_1_k3(N) = (lambdaR * (e_0 + (dt * g_0_k2/2))) - (Omega/2)*(e_1(N) + (dt*e_1_k2(N)/2))
-
-            ! e_1_k3(1) = (lambdaR * (g_2(1,1) + (dt * g_2_k2(1,1)/2))) + (Omega/2)*(g_1(1) + (dt * g_1_k2(1)/2))
-            ! e_1_k3(N) = (lambdaL * (g_2(1,N) + (dt * g_2_k2(1,N)/2))) + (Omega/2)*(g_1(N) + (dt * g_1_k2(N)/2))
-
-            ! do j = 2, (N-1)
-            !     g_1_k3(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k2(j)/2))
-            !     e_1_k3(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1) / 2))) + &
-            !     (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)/2))
-            ! end do 
-
-            ! do j = 2,N 
-            !     g_2_k3(j,1) = (lambdaL * (e_1(j) + (dt * e_1_k2(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)/2))
-            ! end do 
-
-            ! do j = 1,(N-1)
-            !     g_2_k3(j,N) = (lambdaR * (e_1(j) + (dt * e_1_k2(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)/2))
-            ! end do 
-
-            ! do j = 1,(N-2)
-            !     do k = (j+1),(N-1) 
-            !         g_2_k3(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k2(j,k)/2))
-            !     end do 
-            ! end do
-
-            ! do j = 1,(N-1)
-            !     do k = (j+1), N 
-            !         e_2_k3(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k2(j,k)/2))
-            !     end do 
-            ! end do 
-
-            ! ! Calculates k4 values 
-            ! g_0_k4 = (-Omega/2) * (e_0 + (dt * g_0_k2))
-            ! e_0_k4 = (lambdaL * (g_1(1) + (dt * g_1_k2(1)))) + &
-            ! (lambdaR * (g_1(N) + (dt * g_1_k2(N)))) + ((Omega/2) * (g_0 + (dt * g_0_k2)))
-
-            ! g_1_k4(1) = (lambdaL * (e_0 + (dt * g_0_k2))) - (Omega/2)*(e_1(1) + (dt*e_1_k2(1)))
-            ! g_1_k4(N) = (lambdaR * (e_0 + (dt * g_0_k2))) - (Omega/2)*(e_1(N) + (dt*e_1_k2(N)))
-
-            ! e_1_k4(1) = (lambdaR * (g_2(1,1) + (dt * g_2_k2(1,1)))) + (Omega/2)*(g_1(1) + (dt * g_1_k2(1)))
-            ! e_1_k4(N) = (lambdaL * (g_2(1,N) + (dt * g_2_k2(1,N)))) + (Omega/2)*(g_1(N) + (dt * g_1_k2(N)))
-
-            ! do j = 2, (N-1)
-            !     g_1_k4(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k2(j)))
-            !     e_1_k4(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1)))) + &
-            !     (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N)))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)))
-            ! end do 
-
-            ! do j = 2,N 
-            !     g_2_k4(j,1) = (lambdaL * (e_1(j) + (dt * e_1_k2(j)))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)))
-            ! end do 
-
-            ! do j = 1,(N-1)
-            !     g_2_k4(j,N) = (lambdaR * (e_1(j) + (dt * e_1_k2(j)))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)))
-            ! end do 
-
-            ! do j = 1,(N-2)
-            !     do k = (j+1),(N-1) 
-            !         g_2_k4(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k2(j,k)))
-            !     end do 
-            ! end do
-
-            ! do j = 1,(N-1)
-            !     do k = (j+1), N 
-            !         e_2_k4(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k2(j,k)))
-            !     end do 
-            ! end do  
-
             ! Collect them all together
             g_0_new = g_0 + (dt)*(g_0_k1)
-            e_0_new = e_0 + (dt)*(e_0_k1 + 2*e_0_k2 + 2*e_0_k3 + e_0_k4)
+            e_0_new = e_0 + (dt)*(e_0_k1)
 
             g_1_new = g_1 + (dt)*(g_1_k1)
             e_1_new = e_1 + (dt)*(e_1_k1)
 
-            ! g_2_new = g_2 + (dt/6)*(g_2_k1 + 2*g_2_k2 + 2*g_2_k3 + g_2_k4)
-            ! e_2_new = e_2 + (dt/6)*(e_2_k1 + 2*e_2_k2 + 2*e_2_k3 + e_2_k4)
+            g_2_new = g_2 + (dt)*(g_2_k1)
+            e_2_new = e_2 + (dt)*(e_2_k1)
 
             ! Normalise everything here
             call normalise_new(total, N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
 
             ! Check photon 
-            if (mod(index, 10) == 0) then ! Only checks for a photon every 10 time steps 
+            if (mod(index, 100) == 0) then ! Only checks for a photon every 10 time steps 
 
                 ! Do statistics here 
                 psi_0 = modulo_func(g_0_new)**2 + modulo_func(e_0_new)**2
@@ -246,17 +137,17 @@ program main
                     psi_0 = psi_0 + modulo_func(g_1_new(j))**2 + modulo_func(e_1_new(j))**2
                 end do 
 
-                ! do j = 1,(N-2)
-                !     do k = (j+1),(N-1) 
-                !         psi_0 = psi_0 + modulo_func(g_2_new(j,k))**2 + modulo_func(e_2_new(j,k))**2
-                !     end do 
-                ! end do 
+                do j = 1,(N-2)
+                    do k = (j+1),(N-1) 
+                        psi_0 = psi_0 + modulo_func(g_2_new(j,k))**2 + modulo_func(e_2_new(j,k))**2
+                    end do 
+                end do 
 
                 psi_1 = modulo_func(g_1_new(N))**2 + modulo_func(e_1_new(N))**2
 
-                ! do j = 1,(N-1)
-                !     psi_1 = psi_1 + modulo_func(g_2_new(j,N))**2 + modulo_func(e_2_new(j,N))**2
-                ! end do 
+                do j = 1,(N-1)
+                    psi_1 = psi_1 + modulo_func(g_2_new(j,N))**2 + modulo_func(e_2_new(j,N))**2
+                end do 
 
                 prob = psi_1 / (psi_1 + psi_0)
                 
@@ -264,8 +155,18 @@ program main
                 rand_num = rand_list(index)
 
                 ! Print out some information here
-                ! if (mod(index, 10000) == 0) then 
-                !     print *, g_1(N), e_1(N)
+                ! if (mod(index, 1000) == 0) then 
+
+                !     do j = 1,(N-1)
+                !         p0 = p0 + modulo_func(g_2_new(j,N))**2 
+                !     end do 
+
+                !     do j = 1,(N-1)
+                !         p1 = p1 + modulo_func(e_2_new(j,N))**2 
+                !     end do 
+
+                !     print *, modulo_func(g_1_new(N))**2 , modulo_func(e_1_new(N))**2, p0, p1
+
                 ! end if 
 
                 ! Check if photon is in the Nth box
@@ -294,10 +195,15 @@ program main
                         within_interval = 1  
                     end if  
 
+                    do j = 1,(N-1)
+                        p0 = p0 + modulo_func(g_2_new(j,N))**2 + modulo_func(e_2_new(j,N))**2
+                    end do 
+
                     ! print *, "photon found with coeffs: ", p0, p1, p2, p3, p4, prob, 1-prob
 
-                    print *, "probability :", prob, "rand: ", rand_num ,&
-                            "within: ", within_interval, "psi_0: ", psi_0, "psi_1: ", psi_1, g_1_new(N), e_1_new(N)
+                    print *, "probability :", prob, "rand: ", rand_num, & 
+                            "within: ", within_interval, "psi_0: ", psi_0, "psi_1: ", psi_1
+                    print *, "g_1(N): ", modulo_func(g_1_new(N)), "e_1(N): ", modulo_func(e_1_new(N)), p0
                     
                     last_time = time_list(index)
                     within_interval = 0
@@ -317,17 +223,17 @@ program main
 
                     g_2 = 0; e_2 = 0
 
-                    ! do k = 2,N 
-                    !     g_2(1,k) = 0 
-                    !     e_2(1,k) = 0 
-                    ! end do  
+                    do k = 2,N 
+                        g_2(1,k) = 0 
+                        e_2(1,k) = 0 
+                    end do  
 
-                    ! do j = 2,(N-1)
-                    !     do k = (j+1),N 
-                    !         g_2(j,k) = g_2_new(j-1, k-1)
-                    !         e_2(j,k) = e_2_new(j-1, k-1)
-                    !     end do 
-                    ! end do 
+                    do j = 2,(N-1)
+                        do k = (j+1),N 
+                            g_2(j,k) = g_2_new(j-1, k-1)
+                            e_2(j,k) = e_2_new(j-1, k-1)
+                        end do 
+                    end do 
                 
                     ! Call normalisation here 
                     call normalise(total, N, g_0, e_0, g_1, e_1, g_2, e_2)
@@ -341,8 +247,8 @@ program main
                 e_0 = e_0_new
                 g_1 = g_1_new 
                 e_1 = e_1_new
-                ! g_2 = g_2_new 
-                ! e_2 = e_2_new 
+                g_2 = g_2_new 
+                e_2 = e_2_new 
 
 
             end if 
@@ -362,7 +268,7 @@ program main
 
         print *, "number of photons detected in this sim: ", photon_number
 
-        if (mod(sim, 10) == 0) then 
+        if (mod(sim, 100) == 0) then 
             print *, sim ,' simulations completed.'
         end if         
 
@@ -413,11 +319,11 @@ program main
 
         implicit none 
 
-        real (kind=8) :: total 
+        real :: total 
         integer :: N, j, k
-        complex (kind=8) :: g_0, e_0
-        complex (kind=8), dimension(N) :: g_1, e_1
-        complex (kind=8), dimension(N,N) :: g_2, e_2
+        complex  :: g_0, e_0
+        complex , dimension(N) :: g_1, e_1
+        complex , dimension(N,N) :: g_2, e_2
 
         total = modulo_func(g_0) + modulo_func(e_0)
 
@@ -444,11 +350,11 @@ program main
 
         implicit none 
 
-        real (kind=8) :: total 
+        real :: total 
         integer :: N, j, k
-        complex (kind=8) :: g_0_new, e_0_new
-        complex (kind=8), dimension(N) :: g_1_new, e_1_new
-        complex (kind=8), dimension(N,N) :: g_2_new, e_2_new
+        complex :: g_0_new, e_0_new
+        complex , dimension(N) :: g_1_new, e_1_new
+        complex , dimension(N,N) :: g_2_new, e_2_new
 
         total = modulo_func(g_0_new) + modulo_func(e_0_new)
 
@@ -480,8 +386,8 @@ program main
         implicit none
 
         ! Declare var types
-        real (kind=8):: a, b, c
-        complex (kind=8), intent(in) :: z
+        real :: a, b, c
+        complex , intent(in) :: z
 
         a = real(z)
         b = aimag(z)
@@ -501,11 +407,11 @@ program main
 
         ! Declare types 
         integer :: N
-        complex (kind=8):: g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, & 
+        complex :: g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, & 
                 e_0 ,e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new
-        complex (kind=8), dimension(N) :: g_1, g_1_k1, g_1_k2, g_1_k3, g_1_k4,&
+        complex , dimension(N) :: g_1, g_1_k1, g_1_k2, g_1_k3, g_1_k4,&
                  g_1_new, e_1 ,e_1_k1, e_1_k2, e_1_k3, e_1_k4, e_1_new 
-        complex (kind=8), dimension(N,N) :: g_2, g_2_k1, g_2_k2, g_2_k3, g_2_k4, &
+        complex , dimension(N,N) :: g_2, g_2_k1, g_2_k2, g_2_k3, g_2_k4, &
                 g_2_new, e_2 ,e_2_k1, e_2_k2, e_2_k3, e_2_k4, e_2_new 
 
         g_0 = 1

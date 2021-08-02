@@ -3,12 +3,12 @@ program test
 
     implicit none
 
-    real (kind = 4) :: a 
-    real (kind = 8) :: b 
+    real  :: a 
+    complex :: b 
 
-    a = 0.0000000001
-    b = 0.000000000000001
+    a = 2 
+    b = cmplx(2,2)
 
-    print *, a, b
+    print *, a+b
 
 end program test
