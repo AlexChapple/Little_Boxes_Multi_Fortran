@@ -1,12 +1,13 @@
 ! Little Boxes Multi with 4th order Runge-Kutta method adapted into Fortran code
-! This calculates the photon counting distribution 
+! This only lets one photon be in the chamber at a time 
+! In the hopes that it will never let a photon out 
 
 program main
 
     ! ----------------------------------------------------------------------------------
     ! 
     ! Main program that simulates the open quantum system. 
-    ! Does photon counting.  
+    ! Only lets one photon be in the chamber at a time  
     !
     ! ----------------------------------------------------------------------------------
 
@@ -38,7 +39,7 @@ program main
     complex (kind=8), dimension(N) :: g_1, g_1_k1, g_1_k2, g_1_k3, g_1_k4, g_1_new, e_1 ,e_1_k1, e_1_k2, e_1_k3, e_1_k4, e_1_new 
     complex (kind=8), dimension(N,N) :: g_2, g_2_k1, g_2_k2, g_2_k3, g_2_k4, g_2_new, e_2 ,e_2_k1, e_2_k2, e_2_k3, e_2_k4, e_2_new 
     complex (kind=8) :: lambdaL, lambdaR
-    real (kind=8):: psi_0, psi_1, prob, rand_num 
+    real (kind=8):: psi_0, psi_1, prob, rand_num, spin_up_prob, spin_down_prob, spin_total
     
     ! Program execution time tracking 
     call system_clock(beginning, rate)
@@ -60,7 +61,7 @@ program main
         within_interval = 0
         last_time = 0
         interval = 0 
-        p0 = 0; p1 = 0; p2 = 0; p3 = 0; p4 = 0
+        p0 = 0; p1 = 0; p2 = 0; p3 = 0; p4 = 0; g_2 = 0; e_2 = 0
 
         ! Initialise arrays
         call initialise_arrays(N, g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 , & 
@@ -74,7 +75,7 @@ program main
 
         do index = 1, size(time_list)
 
-            psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; total = 0
+            psi_0 = 0; psi_1 = 0; prob = 0; rand_num = 0; total = 0; g_2 = 0; e_2 = 0
 
             ! Calculates k1 values 
             g_0_k1 = (-Omega/2) * e_0
@@ -111,126 +112,126 @@ program main
                 end do 
             end do 
 
-            ! Calculates k2 values
-            g_0_k2 = (-Omega/2) * (e_0 + (dt * g_0_k1/2))
-            e_0_k2 = (lambdaL * (g_1(1) + (dt * g_1_k1(1)/2))) + & 
-            (lambdaR * (g_1(N) + (dt * g_1_k1(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k1/2)))
+            ! ! Calculates k2 values
+            ! g_0_k2 = (-Omega/2) * (e_0 + (dt * g_0_k1/2))
+            ! e_0_k2 = (lambdaL * (g_1(1) + (dt * g_1_k1(1)/2))) + & 
+            ! (lambdaR * (g_1(N) + (dt * g_1_k1(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k1/2)))
 
-            g_1_k2(1) = (lambdaL * (e_0 + (dt * g_0_k1/2))) - (Omega/2)*(e_1(1) + (dt*e_1_k1(1)/2))
-            g_1_k2(N) = (lambdaR * (e_0 + (dt * g_0_k1/2))) - (Omega/2)*(e_1(N) + (dt*e_1_k1(N)/2))
+            ! g_1_k2(1) = (lambdaL * (e_0 + (dt * g_0_k1/2))) - (Omega/2)*(e_1(1) + (dt*e_1_k1(1)/2))
+            ! g_1_k2(N) = (lambdaR * (e_0 + (dt * g_0_k1/2))) - (Omega/2)*(e_1(N) + (dt*e_1_k1(N)/2))
 
-            e_1_k2(1) = (lambdaR * (g_2(1,1) + (dt * g_2_k1(1,1)/2))) + (Omega/2)*(g_1(1) + (dt * g_1_k1(1)/2))
-            e_1_k2(N) = (lambdaL * (g_2(1,N) + (dt * g_2_k1(1,N)/2))) + (Omega/2)*(g_1(N) + (dt * g_1_k1(N)/2))
+            ! e_1_k2(1) = (lambdaR * (g_2(1,1) + (dt * g_2_k1(1,1)/2))) + (Omega/2)*(g_1(1) + (dt * g_1_k1(1)/2))
+            ! e_1_k2(N) = (lambdaL * (g_2(1,N) + (dt * g_2_k1(1,N)/2))) + (Omega/2)*(g_1(N) + (dt * g_1_k1(N)/2))
 
-            do j = 2, (N-1)
-                g_1_k2(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k1(j)/2))
-                e_1_k2(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k1(j,1) / 2))) + &
-                (lambdaR * (g_2(j,N) + (dt * g_2_k1(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k1(j)/2))
-            end do 
+            ! do j = 2, (N-1)
+            !     g_1_k2(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k1(j)/2))
+            !     e_1_k2(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k1(j,1) / 2))) + &
+            !     (lambdaR * (g_2(j,N) + (dt * g_2_k1(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k1(j)/2))
+            ! end do 
 
-            do j = 2,N 
-                g_2_k2(j,1) = (lambdaL * (e_1(j) + (dt * e_1_k1(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k1(j,1)/2))
-            end do 
+            ! do j = 2,N 
+            !     g_2_k2(j,1) = (lambdaL * (e_1(j) + (dt * e_1_k1(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k1(j,1)/2))
+            ! end do 
 
-            do j = 1,(N-1)
-                g_2_k2(j,N) = (lambdaR * (e_1(j) + (dt * e_1_k1(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k1(j,1)/2))
-            end do 
+            ! do j = 1,(N-1)
+            !     g_2_k2(j,N) = (lambdaR * (e_1(j) + (dt * e_1_k1(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k1(j,1)/2))
+            ! end do 
 
-            do j = 1,(N-2)
-                do k = (j+1),(N-1) 
-                    g_2_k2(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k1(j,k)/2))
-                end do 
-            end do
+            ! do j = 1,(N-2)
+            !     do k = (j+1),(N-1) 
+            !         g_2_k2(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k1(j,k)/2))
+            !     end do 
+            ! end do
 
-            do j = 1,(N-1)
-                do k = (j+1), N 
-                    e_2_k2(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k1(j,k)/2))
-                end do 
-            end do 
+            ! do j = 1,(N-1)
+            !     do k = (j+1), N 
+            !         e_2_k2(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k1(j,k)/2))
+            !     end do 
+            ! end do 
 
-            ! Calculates k3 values
-            g_0_k3 = (-Omega/2) * (e_0 + (dt * g_0_k2/2))
-            e_0_k3 = (lambdaL * (g_1(1) + (dt * g_1_k2(1)/2))) + &
-            (lambdaR * (g_1(N) + (dt * g_1_k2(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k2/2)))
+            ! ! Calculates k3 values
+            ! g_0_k3 = (-Omega/2) * (e_0 + (dt * g_0_k2/2))
+            ! e_0_k3 = (lambdaL * (g_1(1) + (dt * g_1_k2(1)/2))) + &
+            ! (lambdaR * (g_1(N) + (dt * g_1_k2(N)/2))) + ((Omega/2) * (g_0 + (dt * g_0_k2/2)))
 
-            g_1_k3(1) = (lambdaL * (e_0 + (dt * g_0_k2/2))) - (Omega/2)*(e_1(1) + (dt*e_1_k2(1)/2))
-            g_1_k3(N) = (lambdaR * (e_0 + (dt * g_0_k2/2))) - (Omega/2)*(e_1(N) + (dt*e_1_k2(N)/2))
+            ! g_1_k3(1) = (lambdaL * (e_0 + (dt * g_0_k2/2))) - (Omega/2)*(e_1(1) + (dt*e_1_k2(1)/2))
+            ! g_1_k3(N) = (lambdaR * (e_0 + (dt * g_0_k2/2))) - (Omega/2)*(e_1(N) + (dt*e_1_k2(N)/2))
 
-            e_1_k3(1) = (lambdaR * (g_2(1,1) + (dt * g_2_k2(1,1)/2))) + (Omega/2)*(g_1(1) + (dt * g_1_k2(1)/2))
-            e_1_k3(N) = (lambdaL * (g_2(1,N) + (dt * g_2_k2(1,N)/2))) + (Omega/2)*(g_1(N) + (dt * g_1_k2(N)/2))
+            ! e_1_k3(1) = (lambdaR * (g_2(1,1) + (dt * g_2_k2(1,1)/2))) + (Omega/2)*(g_1(1) + (dt * g_1_k2(1)/2))
+            ! e_1_k3(N) = (lambdaL * (g_2(1,N) + (dt * g_2_k2(1,N)/2))) + (Omega/2)*(g_1(N) + (dt * g_1_k2(N)/2))
 
-            do j = 2, (N-1)
-                g_1_k3(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k2(j)/2))
-                e_1_k3(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1) / 2))) + &
-                (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)/2))
-            end do 
+            ! do j = 2, (N-1)
+            !     g_1_k3(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k2(j)/2))
+            !     e_1_k3(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1) / 2))) + &
+            !     (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N) / 2))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)/2))
+            ! end do 
 
-            do j = 2,N 
-                g_2_k3(j,1) = (lambdaL * (e_1(j) + (dt * e_1_k2(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)/2))
-            end do 
+            ! do j = 2,N 
+            !     g_2_k3(j,1) = (lambdaL * (e_1(j) + (dt * e_1_k2(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)/2))
+            ! end do 
 
-            do j = 1,(N-1)
-                g_2_k3(j,N) = (lambdaR * (e_1(j) + (dt * e_1_k2(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)/2))
-            end do 
+            ! do j = 1,(N-1)
+            !     g_2_k3(j,N) = (lambdaR * (e_1(j) + (dt * e_1_k2(j)/2))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)/2))
+            ! end do 
 
-            do j = 1,(N-2)
-                do k = (j+1),(N-1) 
-                    g_2_k3(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k2(j,k)/2))
-                end do 
-            end do
+            ! do j = 1,(N-2)
+            !     do k = (j+1),(N-1) 
+            !         g_2_k3(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k2(j,k)/2))
+            !     end do 
+            ! end do
 
-            do j = 1,(N-1)
-                do k = (j+1), N 
-                    e_2_k3(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k2(j,k)/2))
-                end do 
-            end do 
+            ! do j = 1,(N-1)
+            !     do k = (j+1), N 
+            !         e_2_k3(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k2(j,k)/2))
+            !     end do 
+            ! end do 
 
-            ! Calculates k4 values 
-            g_0_k4 = (-Omega/2) * (e_0 + (dt * g_0_k2))
-            e_0_k4 = (lambdaL * (g_1(1) + (dt * g_1_k2(1)))) + &
-            (lambdaR * (g_1(N) + (dt * g_1_k2(N)))) + ((Omega/2) * (g_0 + (dt * g_0_k2)))
+            ! ! Calculates k4 values 
+            ! g_0_k4 = (-Omega/2) * (e_0 + (dt * g_0_k2))
+            ! e_0_k4 = (lambdaL * (g_1(1) + (dt * g_1_k2(1)))) + &
+            ! (lambdaR * (g_1(N) + (dt * g_1_k2(N)))) + ((Omega/2) * (g_0 + (dt * g_0_k2)))
 
-            g_1_k4(1) = (lambdaL * (e_0 + (dt * g_0_k2))) - (Omega/2)*(e_1(1) + (dt*e_1_k2(1)))
-            g_1_k4(N) = (lambdaR * (e_0 + (dt * g_0_k2))) - (Omega/2)*(e_1(N) + (dt*e_1_k2(N)))
+            ! g_1_k4(1) = (lambdaL * (e_0 + (dt * g_0_k2))) - (Omega/2)*(e_1(1) + (dt*e_1_k2(1)))
+            ! g_1_k4(N) = (lambdaR * (e_0 + (dt * g_0_k2))) - (Omega/2)*(e_1(N) + (dt*e_1_k2(N)))
 
-            e_1_k4(1) = (lambdaR * (g_2(1,1) + (dt * g_2_k2(1,1)))) + (Omega/2)*(g_1(1) + (dt * g_1_k2(1)))
-            e_1_k4(N) = (lambdaL * (g_2(1,N) + (dt * g_2_k2(1,N)))) + (Omega/2)*(g_1(N) + (dt * g_1_k2(N)))
+            ! e_1_k4(1) = (lambdaR * (g_2(1,1) + (dt * g_2_k2(1,1)))) + (Omega/2)*(g_1(1) + (dt * g_1_k2(1)))
+            ! e_1_k4(N) = (lambdaL * (g_2(1,N) + (dt * g_2_k2(1,N)))) + (Omega/2)*(g_1(N) + (dt * g_1_k2(N)))
 
-            do j = 2, (N-1)
-                g_1_k4(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k2(j)))
-                e_1_k4(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1)))) + &
-                (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N)))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)))
-            end do 
+            ! do j = 2, (N-1)
+            !     g_1_k4(j) = (-Omega/2) * (e_1(j) + (dt * e_1_k2(j)))
+            !     e_1_k4(j) = (lambdaL * (g_2(j,1) + (dt * g_2_k2(j,1)))) + &
+            !     (lambdaR * (g_2(j,N) + (dt * g_2_k2(j,N)))) + (Omega/2)*(g_1(j) + (dt * g_1_k2(j)))
+            ! end do 
 
-            do j = 2,N 
-                g_2_k4(j,1) = (lambdaL * (e_1(j) + (dt * e_1_k2(j)))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)))
-            end do 
+            ! do j = 2,N 
+            !     g_2_k4(j,1) = (lambdaL * (e_1(j) + (dt * e_1_k2(j)))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)))
+            ! end do 
 
-            do j = 1,(N-1)
-                g_2_k4(j,N) = (lambdaR * (e_1(j) + (dt * e_1_k2(j)))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)))
-            end do 
+            ! do j = 1,(N-1)
+            !     g_2_k4(j,N) = (lambdaR * (e_1(j) + (dt * e_1_k2(j)))) - (Omega/2) * (e_2(j,1) + (dt * e_2_k2(j,1)))
+            ! end do 
 
-            do j = 1,(N-2)
-                do k = (j+1),(N-1) 
-                    g_2_k4(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k2(j,k)))
-                end do 
-            end do
+            ! do j = 1,(N-2)
+            !     do k = (j+1),(N-1) 
+            !         g_2_k4(j,k) = (-Omega/2) * (e_2(j,k) + (dt * e_2_k2(j,k)))
+            !     end do 
+            ! end do
 
-            do j = 1,(N-1)
-                do k = (j+1), N 
-                    e_2_k4(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k2(j,k)))
-                end do 
-            end do  
+            ! do j = 1,(N-1)
+            !     do k = (j+1), N 
+            !         e_2_k4(j,k) = (Omega/2) * (g_2(j,k) + (dt * g_2_k2(j,k)))
+            !     end do 
+            ! end do  
 
             ! Collect them all together
-            g_0_new = g_0 + (dt/6)*(g_0_k1 + 2*g_0_k2 + 2*g_0_k3 + g_0_k4)
-            e_0_new = e_0 + (dt/6)*(e_0_k1 + 2*e_0_k2 + 2*e_0_k3 + e_0_k4)
+            g_0_new = g_0 + (dt)*(g_0_k1)
+            e_0_new = e_0 + (dt)*(e_0_k1 + 2*e_0_k2 + 2*e_0_k3 + e_0_k4)
 
-            g_1_new = g_1 + (dt/6)*(g_1_k1 + 2*g_1_k2 + 2*g_1_k3 + g_1_k4)
-            e_1_new = e_1 + (dt/6)*(e_1_k1 + 2*e_1_k2 + 2*e_1_k3 + e_1_k4)
+            g_1_new = g_1 + (dt)*(g_1_k1)
+            e_1_new = e_1 + (dt)*(e_1_k1)
 
-            g_2_new = g_2 + (dt/6)*(g_2_k1 + 2*g_2_k2 + 2*g_2_k3 + g_2_k4)
-            e_2_new = e_2 + (dt/6)*(e_2_k1 + 2*e_2_k2 + 2*e_2_k3 + e_2_k4)
+            ! g_2_new = g_2 + (dt/6)*(g_2_k1 + 2*g_2_k2 + 2*g_2_k3 + g_2_k4)
+            ! e_2_new = e_2 + (dt/6)*(e_2_k1 + 2*e_2_k2 + 2*e_2_k3 + e_2_k4)
 
             ! Normalise everything here
             call normalise_new(total, N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
@@ -245,17 +246,17 @@ program main
                     psi_0 = psi_0 + modulo_func(g_1_new(j))**2 + modulo_func(e_1_new(j))**2
                 end do 
 
-                do j = 1,(N-2)
-                    do k = (j+1),(N-1) 
-                        psi_0 = psi_0 + modulo_func(g_2_new(j,k))**2 + modulo_func(e_2_new(j,k))**2
-                    end do 
-                end do 
+                ! do j = 1,(N-2)
+                !     do k = (j+1),(N-1) 
+                !         psi_0 = psi_0 + modulo_func(g_2_new(j,k))**2 + modulo_func(e_2_new(j,k))**2
+                !     end do 
+                ! end do 
 
                 psi_1 = modulo_func(g_1_new(N))**2 + modulo_func(e_1_new(N))**2
 
-                do j = 1,(N-1)
-                    psi_1 = psi_1 + modulo_func(g_2_new(j,N))**2 + modulo_func(e_2_new(j,N))**2
-                end do 
+                ! do j = 1,(N-1)
+                !     psi_1 = psi_1 + modulo_func(g_2_new(j,N))**2 + modulo_func(e_2_new(j,N))**2
+                ! end do 
 
                 prob = psi_1 / (psi_1 + psi_0)
                 
@@ -263,8 +264,8 @@ program main
                 rand_num = rand_list(index)
 
                 ! Print out some information here
-                ! if (mod(index, 5000) == 0) then 
-                !     print *, sum(g_1), sum(e_1), sum(g_2), sum(e_2)
+                ! if (mod(index, 10000) == 0) then 
+                !     print *, g_1(N), e_1(N)
                 ! end if 
 
                 ! Check if photon is in the Nth box
@@ -293,30 +294,10 @@ program main
                         within_interval = 1  
                     end if  
 
-                    p0 = modulo_func(g_0_new)**2 + modulo_func(e_0_new)**2
-                    p1 = 0
-                    p2 = 0
-                    p3 = modulo_func(g_1_new(N))**2 + modulo_func(e_1_new(N))**2
-                    p4 = 0
-
-                    do j = 1,(N-1) 
-                        p1 = p1 + modulo_func(g_1_new(j))**2 + modulo_func(e_1_new(j))**2
-                    end do 
-
-                    do j = 1,(N-2)
-                        do k = (j+1),(N-1) 
-                            p2 = p2 + modulo_func(g_2_new(j,k))**2 + modulo_func(e_2_new(j,k))**2
-                        end do 
-                    end do 
-
-                    do j = 1,(N-1)
-                        p4 = p4 + modulo_func(g_2_new(j,N))**2 + modulo_func(e_2_new(j,N))**2
-                    end do 
-
                     ! print *, "photon found with coeffs: ", p0, p1, p2, p3, p4, prob, 1-prob
 
-                    print *, "probability :", prob, & 
-                            "within: ", within_interval, "psi_0: ", psi_0, "psi_1: ", psi_1, "p3: ", p3, "p4: ", p4
+                    print *, "probability :", prob, "rand: ", rand_num ,&
+                            "within: ", within_interval, "psi_0: ", psi_0, "psi_1: ", psi_1, g_1_new(N), e_1_new(N)
                     
                     last_time = time_list(index)
                     within_interval = 0
@@ -336,17 +317,17 @@ program main
 
                     g_2 = 0; e_2 = 0
 
-                    do k = 2,N 
-                        g_2(1,k) = 0 
-                        e_2(1,k) = 0 
-                    end do  
+                    ! do k = 2,N 
+                    !     g_2(1,k) = 0 
+                    !     e_2(1,k) = 0 
+                    ! end do  
 
-                    do j = 2,(N-1)
-                        do k = (j+1),N 
-                            g_2(j,k) = g_2_new(j-1, k-1)
-                            e_2(j,k) = e_2_new(j-1, k-1)
-                        end do 
-                    end do 
+                    ! do j = 2,(N-1)
+                    !     do k = (j+1),N 
+                    !         g_2(j,k) = g_2_new(j-1, k-1)
+                    !         e_2(j,k) = e_2_new(j-1, k-1)
+                    !     end do 
+                    ! end do 
                 
                     ! Call normalisation here 
                     call normalise(total, N, g_0, e_0, g_1, e_1, g_2, e_2)
@@ -360,8 +341,8 @@ program main
                 e_0 = e_0_new
                 g_1 = g_1_new 
                 e_1 = e_1_new
-                g_2 = g_2_new 
-                e_2 = e_2_new 
+                ! g_2 = g_2_new 
+                ! e_2 = e_2_new 
 
 
             end if 

@@ -29,7 +29,7 @@ program main
     real, parameter :: tau = 10.0 * dt * real(N) 
     real :: total 
     integer :: sim, index, j, k, beginning, end, rate 
-    real, dimension(time_steps) :: time_list, spin_up_list, spin_down_list, rand_list 
+    real, dimension(time_steps) :: time_list, spin_up_list, spin_down_list, rand_list
 
     ! The coefficients (g for ground, u for up)
     complex :: g_0, g_0_k1, g_0_k2, g_0_k3, g_0_k4, g_0_new, e_0 ,e_0_k1, e_0_k2, e_0_k3, e_0_k4, e_0_new
