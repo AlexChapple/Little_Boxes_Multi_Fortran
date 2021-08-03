@@ -14,7 +14,7 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 50 * 10000 ! NOTE: Evolving 100 RK between detections
+    integer, parameter :: time_steps = 500 * 10000 ! NOTE: Evolving 100 RK between detections
     integer, parameter :: end_time = 50
     integer, parameter :: num_of_simulations = 1
     real, parameter :: pi = 3.14159265359
@@ -23,7 +23,7 @@ program main
     real, parameter :: gammaR = 0.5 
     complex, parameter :: Omega = 10 * pi !cmplx(10 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
-    real, parameter :: tau = 100.0 * dt * real(N) 
+    real, parameter :: tau = 1000.0 * dt * real(N) 
     real :: total, current_time ! Last time the photon was found, total for normalisation purposes 
     integer :: sim, index, j, k, beginning, end, rate
     integer :: photon_number
@@ -244,7 +244,7 @@ program main
             call normalise_new(total, N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
 
             ! Check photon 
-            if (mod(index, 100) == 0) then ! Only checks for a photon every 10 time steps 
+            if (mod(index, 1000) == 0) then ! Only checks for a photon every 10 time steps 
 
                 ! Do statistics here 
                 psi_0 = modulo_func(g_0_new)**2 + modulo_func(e_0_new)**2
