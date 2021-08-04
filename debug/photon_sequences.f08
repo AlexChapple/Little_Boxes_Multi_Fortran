@@ -10,6 +10,7 @@ program main
     ! ----------------------------------------------------------------------------------
     ! 
     ! Main program that simulates the open quantum system. 
+    ! This program produces photon sequences 
     !
     ! ----------------------------------------------------------------------------------
 
@@ -24,7 +25,7 @@ program main
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
     real, parameter :: gammaR = 0.5 
-    integer, parameter :: period = 100
+    integer, parameter :: period = 10
     complex, parameter :: Omega = cmplx(10 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
     real, parameter :: tau = real(period) * dt * real(N) 
