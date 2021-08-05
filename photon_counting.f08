@@ -14,9 +14,9 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 20 * 10000
-    integer, parameter :: end_time = 20
-    integer, parameter :: num_of_simulations = 500 
+    integer, parameter :: time_steps = 100 * 10000
+    integer, parameter :: end_time = 100
+    integer, parameter :: num_of_simulations = 20 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
