@@ -23,7 +23,7 @@ program main
     real, parameter :: gammaR = 0.5 
     complex, parameter :: Omega = cmplx(10 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
-    real, parameter :: tau = 100.0 * dt * real(N) 
+    real, parameter :: tau = 100 * dt * real(N) 
     real :: total, current_time ! Last time the photon was found, total for normalisation purposes 
     integer :: sim, index, j, k, beginning, end, rate
     integer :: photon_number
