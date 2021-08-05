@@ -14,16 +14,16 @@ program main
 
     ! Declare variables and parameters
     integer, parameter :: N = 20
-    integer, parameter :: time_steps = 80000
-    integer, parameter :: end_time = 8
-    integer, parameter :: num_of_simulations = 1500 
+    integer, parameter :: time_steps = 20 * 10000
+    integer, parameter :: end_time = 20
+    integer, parameter :: num_of_simulations = 500 
     real, parameter :: pi = 3.1415927
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
     real, parameter :: gammaR = 0.5 
     complex, parameter :: Omega = cmplx(10 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
-    real, parameter :: tau = 10.0 * dt * real(N) 
+    real, parameter :: tau = 100.0 * dt * real(N) 
     real :: total, current_time ! Last time the photon was found, total for normalisation purposes 
     integer :: sim, index, j, k, beginning, end, rate
     integer :: photon_number
@@ -48,8 +48,8 @@ program main
     photon_counter = 0
 
     ! Initialise lambdaL and lambdaR
-    lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
-    lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
+    lambdaL = cmplx(0,1) * sqrt(gammaL) * sqrt(N/tau)
+    lambdaR = cmplx(0,-1) * sqrt(gammaR) * sqrt(N/tau)
 
     ! A do loop will go through and do the simulations here
     do sim = 1, num_of_simulations
@@ -230,7 +230,7 @@ program main
             call normalise_new(total, N, g_0_new, e_0_new, g_1_new, e_1_new, g_2_new, e_2_new)
 
             ! Check photon 
-            if (mod(index, 10) == 0) then ! Only checks for a photon every 10 time steps 
+            if (mod(index, 100) == 0) then ! Only checks for a photon every 10 time steps 
 
                 ! Do statistics here 
                 psi_0 = modulo_func(g_0_new)**2 + modulo_func(e_0_new)**2

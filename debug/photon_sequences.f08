@@ -25,12 +25,13 @@ program main
     real, parameter :: phase = pi  
     real, parameter :: gammaL = 0.5 
     real, parameter :: gammaR = 0.5 
-    integer, parameter :: period = 10
+    integer, parameter :: period = 200
     complex, parameter :: Omega = cmplx(10 * pi, 0)
     real, parameter :: dt = real(end_time) / real(time_steps) 
     real, parameter :: tau = real(period) * dt * real(N) 
     real :: total , last_time, p0, p1, interval, p2, p3, interval2
-    integer :: sim, index, j, k, beginning, end, rate, within_interval
+    integer :: sim, index, j, k, beginning, end, rate
+    character (len=3) :: within_interval
     real, dimension(time_steps) :: time_list, rand_list, photon_sequences, within_list 
 
     ! The coefficients (g for ground, u for up)
@@ -49,8 +50,11 @@ program main
     within_list = 0
 
     ! Initialise lambdaL and lambdaR
-    lambdaL = exp(cmplx(0, phase / 2)) * sqrt(gammaL) * sqrt(N/tau)
-    lambdaR = exp(cmplx(0, -phase / 2)) * sqrt(gammaR) * sqrt(N/tau)
+    lambdaL = cmplx(0,1) * sqrt(gammaL) * sqrt(N/tau)
+    lambdaR = cmplx(0,-1) * sqrt(gammaR) * sqrt(N/tau)
+
+    print *, "round trip time: ", tau 
+    print *, "lambdaL: ", lambdaL
 
     ! A do loop will go through and do the simulations here
     do sim = 1, num_of_simulations
@@ -270,9 +274,13 @@ program main
                     end do 
 
                     if (interval2 <= tau) then 
-                        print *, prob, 1 - prob, p0, p1, p2, p3, "yes"
+                        ! print *, "probability of emission: ", prob, "probability of no emission: ", &
+                        ! 1 - prob, "within interval: ", "yes" 
+                        print *, prob, "yes"
                     else 
-                        print *, prob, 1 - prob, p0, p1, p2, p3, "no"
+                        ! print *, "probability of emission: ", prob, "probability of no emission: ", &
+                        ! 1 - prob, "within interval: ", "no"
+                        print *, prob, "no"
                     end if 
             
                 end if
@@ -307,8 +315,9 @@ program main
 
                     interval = time_list(index) - last_time 
 
+                    within_interval = "no"
                     if (interval <= tau .AND. time_list(index) >= tau) then 
-                        within_interval = 1 
+                        within_interval = "yes" 
                         within_list(index) = 1  
                     end if  
 
@@ -320,13 +329,10 @@ program main
                     end do 
 
 
-                    print *, "probability :", prob, "rand: ", rand_num, & 
-                            "within: ", within_interval, & 
-                            "g_1(N): ", modulo_func(g_1_new(N)), "e_1(N): ", modulo_func(e_1_new(N)), &
-                            "g_2: ", p0, "e_2: ", p1 
+                    print *, "probability :", prob, "rand: ", rand_num, "within: ", within_interval
                     
                     last_time = time_list(index)
-                    within_interval = 0
+                    within_interval = "no"
                     
 
                 else ! Photon not found 
